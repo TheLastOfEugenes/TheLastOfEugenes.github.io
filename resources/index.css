@@ -1,0 +1,179 @@
+/*General styling*/
+
+@font-face {
+    font-family: "AliceInWonderland";
+    src: url("../resources/AliceInWonderland-z051.ttf");
+}
+
+h1 {
+    border-bottom: none;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    transition-delay: 0.3s;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+}
+
+h1 {
+    margin-bottom: 0;
+}
+
+html {
+    margin: 0;
+    padding: 0;
+
+}
+
+body {
+    background-image: url("../images/background_4_pages_with_logo_v6.png");
+    margin: 0;
+    padding: 0;
+    height: 4620px;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hidescrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hidescrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.glow {
+    background-color: rgb(38, 35, 55, 0.95);
+    border-radius: 1.5vw;
+    font-size: 80px;
+    color: #fff;
+    text-align: center;
+    box-shadow:
+        0 0 10px #0066ff,
+        0 0 15px #0080ff,
+        0 0 20px #0099ff,
+        0 0 25px #00b3ff,
+        0 0 30px #00ccff;
+}
+
+.title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 60px;
+    margin: 0;
+    transition: all 0.3s ease;
+    /* Animation fluide */
+}
+
+.subtitle {
+    font-size: 20px;
+    text-align: center;
+    margin: 0;
+    opacity: 0;
+    /* Caché au départ */
+    transform: translateY(20px);
+    /* Décalé vers le bas */
+    transition: all 0.3s ease;
+}
+
+/* Au survol du conteneur */
+.title-container:hover .title {
+    transform: translateY(-30px);
+    /* Montez le titre */
+}
+
+.title-container:hover .subtitle {
+    opacity: 1;
+    /* Apparaît */
+    transform: translateY(0);
+    /* Revient à sa place */
+}
+
+.dictionary {
+    font-family: garamond, sans-serif;
+    color: white;
+}
+
+h1.dictionary {
+    font-size: 40px;
+}
+
+
+
+
+
+
+
+
+/* frontpage */
+
+div.frontpage {
+    height: 108vh;
+    width: 100vw;
+    background-color: rgba(238, 255, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+div.frontpage p.glow {
+    width: min-content;
+    white-space: nowrap;
+    padding: 2%;
+    margin: -20vh auto 0 auto;
+    font-family: "AliceInWonderland", sans-serif;
+}
+
+/* writeups page */
+
+div.writeups {
+    height: 108vh;
+    width: 100vw;
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+div.wiretups>* {
+    margin-left: 3vw;
+}
+
+div.writeups>h1 {
+    margin-top: 3vh;
+}
+
+div.writeups table {
+    width: 100%;
+    height: 100%;
+}
+
+div.writeups table td {
+    vertical-align: top;
+    width: 50%;
+    text-align: center;
+}
+
+/* projects page */
+
+div.projects {
+    height: 108vh;
+    width: 100vw;
+    background-color: rgba(0, 0, 255, 0.3);
+}
+
+/* online cv */
+
+div.onlineCV {
+    height: 112vh;
+    width: 100vw;
+    background-color: rgba(0, 255, 0, 0.3);
+}
