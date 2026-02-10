@@ -54,3 +54,8 @@ exclude:
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+collections:
+  HTB:
+    output: true
+    sort_by: date

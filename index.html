@@ -1,4 +1,8 @@
-<html class="hidescrollbar">
+---
+# front matter tells Jekyll to process Liquid
+---
+
+<html class="hide-scrollbar">
 
 <!--head-->
 
@@ -13,7 +17,7 @@
     <!--front page image-->
     <div class="frontpage">
         <div class="title-container">
-            <p class="glow title">Eugene's Wonderland</p>
+            <p class="glow-blue-box title">Eugene's Wonderland</p>
             <p class="subtitle">Here are some writeups and projects of my own. Don't be afraid, go down the hole
                 Alice,<br>
                 follow the white rabbit...</p>
@@ -22,7 +26,12 @@
 
     <!--writeups-->
     <div class="writeups">
-        <h1 class="dictionary">Writeups</h1>
+        <h1 class="dictionary">Write-up</h1>
+        <p class="dictionary">/ˈrʌɪtʌp/</p>
+        <p class="dictionary text">noun: writeup <br>
+            A written account -- in particular a great one -- giving a solution to a problem, often regarded as correct,
+            rightfully so. <br>
+            synonyms: shareflag, solution</p>
         <div class="tooltip">
             <p class="tooltiptext">p.s. Most of those are wrote in french, the english version is coming (somewhat) soon
             </p>
@@ -32,15 +41,42 @@
             <tr>
 
                 <!--htb part of the writeups-->
-                <td>
-                    <h1>HackTheBox</h1>
-                    <p><a href="projects/project1.html">Project 1</a></p>
+                <td class="content">
+                    <h1 class="green-text">HackTheBox</h1>
+                    <!-- <a href="projects/project1.html" class="writeup-wrapper">
+                        <p class="writeup-card">Project example</p>
+                    </a> -->
+
+
+                    <!--Last 3 writeups-->
+                    {% assign writeups = site.HTB
+                    | where: "category", "writeups"
+                    | sort: "date"
+                    | reverse
+                    %}
+
+                    {% for post in writeups limit: 3%}
+                    <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
+                        <p class="writeup-card">
+                            {{ post.title }} <small>| {{ post.date | date: "%d %b %Y" }}</small>
+                        </p>
+                    </a>
+                    {% endfor %}
+
+
+                    <h2>DEBUG: Tous les posts trouvés ({{ site.HTB.size }})</h2>
+
                 </td>
 
                 <!--ctfs part of the writeups-->
-                <td>
-                    <h1>CTFs</h1>
-                    <p><a>Project 2</a></p>
+                <td class="content">
+                    <h1 class="pink-text">CTFs</h1>
+                    <a href="" class="writeup-wrapper">
+                        <p class="writeup-card">Project 2</p>
+                </td>
+
+                <td class="image">
+                    <a href="https://app.hackthebox.com/users/2162889"><img src="images/writeup-logo-circle.png"></a>
                 </td>
 
             </tr>
