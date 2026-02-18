@@ -49,13 +49,13 @@
 
 
                     <!--Last 3 writeups-->
-                    {% assign writeups = site.HTB
+                    {% assign htb_writeups = site.HTB
                     | where: "category", "writeups"
                     | sort: "date"
                     | reverse
                     %}
 
-                    {% for post in writeups limit: 3%}
+                    {% for post in htb_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
                         <p class="writeup-card">
                             {{ post.title }} <small>| {{ post.date | date: "%d %b %Y" }}</small>
@@ -71,8 +71,28 @@
                 <!--ctfs part of the writeups-->
                 <td class="content">
                     <h1 class="pink-text">CTFs</h1>
-                    <a href="" class="writeup-wrapper">
+                    <!-- <a href="" class="writeup-wrapper">
                         <p class="writeup-card">Project 2</p>
+                    </a>-->
+
+                    <!--Last 3 writeups-->
+                    {% assign ctf_writeups = site.CTF
+                    | where: "category", "writeups"
+                    | sort: "date"
+                    | reverse
+                    %}
+
+                    {% for post in ctf_writeups limit: 3%}
+                    <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
+                        <p class="writeup-card">
+                            {{ post.title }} <small>| {{ post.date | date: "%d %b %Y" }}</small>
+                        </p>
+                    </a>
+                    {% endfor %}
+
+
+                    <h2>DEBUG: Tous les posts trouvés ({{ site.CTF.size }})</h2>
+
                 </td>
 
                 <td class="image">

@@ -18,21 +18,25 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Your awesome title
+title: Writeup
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Writeups & CTFs
+
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: jekyllrb
 github_username:  jekyll
 
 # Build settings
-theme: minima
+remote_theme: pages-themes/cayman@v0.2.0
+
 plugins:
   - jekyll-feed
+  - jekyll-remote-theme
+  - jekyll-wikirefs
+
+theme: jekyll-theme-cayman
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -42,8 +46,10 @@ plugins:
 # Excluded items can be processed by explicitly listing the directories or
 # their entries' file path in the `include:` list.
 #
+
 exclude:
   - test
+
 #   - .sass-cache/
 #   - .jekyll-cache/
 #   - gemfiles/
@@ -59,3 +65,43 @@ collections:
   HTB:
     output: true
     sort_by: date
+  CTF:
+    output: true
+    sort_by: date
+
+sass:
+  sass_dir: _sass
+
+defaults:
+  - scope:
+      path: ""
+      type: "HTB"
+    values:
+      layout: default
+  - scope:
+      path: ""
+      type: "CTF"
+    values:
+      layout: default
+
+
+wikirefs:
+  attributes:
+    enabled: true
+  case:
+    'lower case'
+  css:
+    exclude: []
+    name:
+      typed: 'typed'
+      wiki: 'wiki-link'
+      web: 'web-link'
+      invalid_wiki: 'invalid-wiki-link'
+      embed_container: 'embed-container'
+      embed_title: 'embed-title'
+      embed_content: 'embed-content'
+      embed_link: 'embed-wiki-link'
+      embed_image_container: 'embed-image-container'
+      embed_image: 'embed-image'
+  enabled: true
+  exclude: []
