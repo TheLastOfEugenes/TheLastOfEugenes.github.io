@@ -15,17 +15,21 @@
 <body>
 
     <!--front page image-->
-    <div class="frontpage">
+    <div class="frontpage" id="frontpage">
         <div class="title-container">
             <p class="glow-blue-box title">Eugene's Wonderland</p>
             <p class="subtitle">Here are some writeups and projects of my own. Don't be afraid, go down the hole
                 Alice,<br>
                 follow the white rabbit...</p>
         </div>
+        <a href="#writeups">
+            <!--<img src="resources/greyarrowhead.png" class="arrowshadow1">-->
+            <img src="resources/greyarrowhead.png" class="arrow1">
+        </a>
     </div>
 
     <!--writeups-->
-    <div class="writeups">
+    <div class="writeups" id="writeups">
         <h1 class="dictionary">Write-up</h1>
         <p class="dictionary">/ˈrʌɪtʌp/</p>
         <p class="dictionary text">noun: writeup <br>
@@ -57,14 +61,20 @@
 
                     {% for post in htb_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card">
-                            {{ post.title }} <small>| {{ post.date | date: "%d %b %Y" }}</small>
+                        <p class="writeup-card-htb">
+                            {{ post.title }}<br>
+                            <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
                     </a>
                     {% endfor %}
 
 
-                    <h2>DEBUG: Tous les posts trouvés ({{ site.HTB.size }})</h2>
+                    <!--Ici le poste pour recenser tous les autres-->
+                    <a href="htb-index.html" class="writeup-wrapper">
+                        <p class="writeup-card-htb-summary">
+                            See all HTB writeups.
+                        </p>
+                    </a>
 
                 </td>
 
@@ -84,14 +94,20 @@
 
                     {% for post in ctf_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card">
-                            {{ post.title }} <small>| {{ post.date | date: "%d %b %Y" }}</small>
+                        <p class="writeup-card-ctf">
+                            {{ post.title }} <br>
+                            <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
                     </a>
                     {% endfor %}
 
 
-                    <h2>DEBUG: Tous les posts trouvés ({{ site.CTF.size }})</h2>
+                    <!--Ici le poste pour recenser tous les autres-->
+                    <a href="htb-index.html" class="writeup-wrapper">
+                        <p class="writeup-card-ctf-summary">
+                            See all CTF writeups.
+                        </p>
+                    </a>
 
                 </td>
 
@@ -102,10 +118,15 @@
             </tr>
         </table>
 
+        <a href="#projects">
+            <!--<img src="resources/greyarrowhead.png" class="arrowshadow2">-->
+            <img src="resources/greyarrowhead.png" class="arrow2">
+        </a>
+
     </div>
 
     <!--projects-->
-    <div class="projects">
+    <div class="projects" id="projects">
         <h1>Projects</h1>
         <table>
             <tr>
@@ -129,10 +150,15 @@
             </tr>
         </table>
 
+        <a href="#cv">
+            <!--<img src="resources/greyarrowhead.png" class="arrowshadow3">-->
+            <img src="resources/greyarrowhead.png" class="arrow3">
+        </a>
+
     </div>
 
     <!--cv en ligne-->
-    <div class="onlineCV">
+    <div class="onlineCV" id="cv">
         <h1>CV en ligne</h1>
         <table>
             <tr>

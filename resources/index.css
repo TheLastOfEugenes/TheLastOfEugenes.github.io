@@ -25,7 +25,7 @@ h1 {
 html {
     margin: 0;
     padding: 0;
-
+    scroll-behavior: smooth;
 }
 
 body {
@@ -47,6 +47,64 @@ body {
     scrollbar-width: none;
     /* Firefox */
 }
+
+
+/* text and boxes relative */
+
+/* arrows */
+
+.arrow1 {
+    position: absolute;
+    height: 7vh;
+    width: 5vw;
+    bottom: 10vh;
+    right: 47.5vw;
+}
+
+.arrowshadow1 {
+    position: absolute;
+    height: 8vh;
+    width: 6vw;
+    bottom: 9.5vh;
+    right: 47vw;
+    filter: brightness(0%);
+}
+
+.arrow2 {
+    position: absolute;
+    height: 7vh;
+    width: 5vw;
+    bottom: -100vh;
+    right: 47.5vw;
+}
+
+.arrowshadow2 {
+    position: absolute;
+    height: 8vh;
+    width: 6vw;
+    bottom: 9.5vh;
+    right: 47vw;
+    filter: brightness(0%);
+}
+
+.arrow3 {
+    position: absolute;
+    height: 7vh;
+    width: 5vw;
+    bottom: -210vh;
+    right: 47.5vw;
+}
+
+.arrowshadow3 {
+    position: absolute;
+    height: 8vh;
+    width: 6vw;
+    bottom: 9.5vh;
+    right: 47vw;
+    filter: brightness(0%);
+}
+
+/* texts */
 
 .glow-blue-box {
     background-color: rgb(38, 35, 55, 0.95);
@@ -145,7 +203,9 @@ h1.dictionary {
     font-size: 40px;
 }
 
-.writeup-card {
+/* writeups cards styling */
+
+.writeup-card-htb {
     white-space: nowrap;
     background-color: rgba(28, 6, 79, 0.3);
     margin: 2vh auto;
@@ -153,12 +213,59 @@ h1.dictionary {
     padding: 1vw;
     border-radius: 1vw;
     width: 90%;
-    border: 1px solid black;
+    border: 2px solid black;
+    box-shadow: 
+        -4px -4px 8px #9aff00
+}
+
+.writeup-card-ctf {
+    white-space: nowrap;
+    background-color: rgba(28, 6, 79, 0.3);
+    margin: 2vh auto;
+    font-size: 30px;
+    padding: 1vw;
+    border-radius: 1vw;
+    width: 90%;
+    border: 2px solid black;
+    box-shadow: 
+        4px -4px 8px #ff4da6
+}
+
+.writeup-card-htb-summary {
+    white-space: nowrap;
+    background-color: rgba(28, 6, 79, 0.3);
+    margin: 2vh auto;
+    margin-top: 4vh;
+    font-size: 30px;
+    padding: 1.5vw 1vw;
+    border-radius: 1vw;
+    width: 90%;
+    border: 2px solid black;
+    box-shadow: 
+        -4px 4px 8px #f17c0e
+}
+
+.writeup-card-ctf-summary {
+    white-space: nowrap;
+    background-color: rgba(28, 6, 79, 0.3);
+    margin: 2vh auto;
+    margin-top: 4vh;
+    font-size: 30px;
+    padding: 1.5vw 1vw;
+    border-radius: 1vw;
+    width: 90%;
+    border: 2px solid black;
+    box-shadow: 
+        4px 4px 8px #f17c0e
 }
 
 a.writeup-wrapper {
     color: white;
     text-decoration: none;
+}
+
+.writeup-wrapper small {
+    font-size: 12px;
 }
 
 
