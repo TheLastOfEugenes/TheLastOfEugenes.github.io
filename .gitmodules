@@ -5,3 +5,7 @@
 [submodule "_HTB"]
   path = _HTB
   url = git://github.com/TheLastOfEugenes/Saves.git
+
+[submodule "assets"]
+  path = assets
+  url = git://github.com/TheLastOfEugenes/Saves.git
