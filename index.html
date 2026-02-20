@@ -16,12 +16,39 @@
 
     <!--front page image-->
     <div class="frontpage" id="frontpage">
-        <div class="title-container">
-            <p class="glow-blue-box title">Eugene's Wonderland</p>
-            <p class="subtitle">Here are some writeups and projects of my own. Don't be afraid, go down the hole
-                Alice,<br>
-                follow the white rabbit...</p>
+        
+        <div id="circle-title">
+            <svg viewBox="0 0 300 200" width="40vw" height="60vh">
+
+                <path id="spiralPathTitle" d="M132.9306,47.8721C132.9304,47.8128 132.9301,47.7536 132.9297,47.6943C132.7414,21.6768 110.8985,0.0000 84.8464,0.1901C59.0596,0.3784 37.5753,22.0284 37.7655,47.8499" 
+                style="fill:none;stroke:none" stroke-width="2" transform="matrix(-1,0,0,1,214.70644,0)"/>
+                
+                <!-- Text spirals in from left-->
+                <text font-size="20" font-family="AliceInWonderland, sans-serif" font-weight="bold" fill="#ffffff">
+                    <textPath href="#spiralPathTitle" textLength="0">Eugene's Wonderland</textPath>
+                </text>
+
+            </svg>
+
+
         </div>
+        
+        <div id="circle-text">
+            <svg viewBox="0 0 300 300" width="25vw" height="40vh">
+
+                <path id="spiralPathText" d="M 164.6471,91.099733C164.632,91.077463 164.6169,91.055213 164.6018,91.032973C143.71205,60.29961 100.54321,51.405855 69.653831,72.459818C40.169022,92.556434 31.64888,134.02136 51.914165,163.66247C71.20801,191.8827 110.9479,200.02431 139.3246,180.55686C166.26307,162.0761 174.02085,124.08385 155.36099,96.988861C137.7044,71.350652 101.48402,63.982384 75.689411,81.824267C51.371454,98.644762 44.398868,133.06714 61.41165800000002,157.54113999999996C77.38310700000002,180.51710999999997 109.97923000000003,187.08730999999997 133.11057000000002,170.91553999999996C154.72077000000002,155.80724999999998 160.88124000000002,125.06814999999997 145.56335,103.30363999999997C131.33372,83.08538599999997 102.4853,77.34275199999996 82.114373,91.79285699999997C63.31711399999999,105.12667999999998 58.00129299999999,132.04731999999998 71.568531,150.99482999999998C83.98737,168.33853 108.93906,173.21747999999997 126.42947,160.54953999999998C142.28270999999998,149.06737999999999 146.71339999999998,126.13072999999999 134.96272,110.13596999999999C124.44215,95.81559599999999 103.57266999999999,91.84615799999999 89.118451,102.65996999999999C76.38050899999999,112.18975999999998 72.88736499999999,130.93255 82.74297999999999,143.79267C91.246858,154.88896 107.79431,157.88826 118.99431,149.01358C128.37614,141.5796 130.86106,127.30698 122.99014,117.85255C116.68463,110.27847 104.77684,108.33099 97.188,115.1802C91.549079,120.26954 90.158724,129.72769 95.992131,135.25332C99.691852,138.75782999999998 106.77403,139.61576 109.75497,134.67836C111.3272,132.07423 109.85928,126.31566000000001 105.97753,128.81752m" 
+                style="fill:none;stroke:none" stroke-width="2" transform="matrix(-1,0,0,1,214.70644,0)"/>
+                
+                <!-- Text spirals in from left-->
+                <text font-size="14" font-family="AliceInWonderland, sans-serif" font-weight="bold" fill="#ffffff">
+                    <textPath href="#spiralPathText" textLength="0">Follow the white rabbit Alice.   Go on, are you scared? Follow the white rabbit Alice. Go on, are you scared? Follow the white rabbit Alice. Go on, are you scared? Follow the white rabbit Alice. Go on, are you scared? Follow the white rabbit Alice. Go on, are you scared? Follow the white rabbit Alice. Go on, are you scared?</textPath>
+                </text>
+
+            </svg>
+
+
+        </div>
+
         <a href="#writeups">
             <!--<img src="resources/greyarrowhead.png" class="arrowshadow1">-->
             <img src="resources/greyarrowhead.png" class="arrow1">
@@ -30,6 +57,12 @@
 
     <!--writeups-->
     <div class="writeups" id="writeups">
+
+        <!--<a href="#frontpage">
+            <!--<img src="resources/greyarrowhead.png" class="toparrowshadow1">
+            <img src="resources/greyarrowhead.png" class="toparrow1">
+        </a>-->
+
         <h1 class="dictionary">Write-up</h1>
         <p class="dictionary">/ˈrʌɪtʌp/</p>
         <p class="dictionary text">noun: writeup <br>
@@ -127,28 +160,102 @@
 
     <!--projects-->
     <div class="projects" id="projects">
-        <h1>Projects</h1>
-        <table>
-            <tr>
 
-                <!--left column-->
-                <td>
-                    <ul>
-                        <li>first column</li>
-                        <li>second part</li>
-                    </ul>
-                </td>
+        <!--<a href="#writeups">
+            <!--<img src="resources/greyarrowhead.png" class="toparrowshadow2">
+            <img src="resources/greyarrowhead.png" class="toparrow2">
+        </a>-->
 
-                <!--right column-->
-                <td>
-                    <ul>
-                        <li>second column</li>
-                        <li>second part</li>
-                    </ul>
-                </td>
+        <h1 class="section-title">Projects</h1>
 
-            </tr>
-        </table>
+        <div class="carousel-wrapper">
+            <button class="arrow prev" onclick="moveCarousel(false)">‹</button>
+            <div class="carousel-track">
+                
+                <!--Project Shootpython-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/Shooterpython">
+                        <div class="card-outer-grey">
+                            <div class="card-inner">
+                                <h3>PyShooter</h3>
+                                <p>Simple shooter game in python.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!--Project Fuzzer-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/fuzzer">
+                        <div class="card-outer-pink">
+                            <div class="card-inner">
+                                <h3>Fuzzer</h3>
+                                <p>Web Fuzzer adaptable to modules.<br>Still in development</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!--Project Fuzzer-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/PentestCheatSheet">
+                        <div class="card-outer-brown">
+                            <div class="card-inner">
+                                <h3>Pentesting Cheatsheet</h3>
+                                <p>Cheat Sheet for pentestoing different environments.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!--Project Fuzzer-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/seemsimi">
+                        <div class="card-outer-blue">
+                            <div class="card-inner">
+                                <h3>Seem-simi</h3>
+                                <p>A simplistic version of the infamous Simsimi. Still in development.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!--Project Dofus-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/dofus_like">
+                        <div class="card-outer-pink">
+                            <div class="card-inner">
+                                <h3>Dofus-like</h3>
+                                <p>A simplistic group project version of the famous Dofus game.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!--Project Website-->
+                <div class="project-card">
+                    <a href="https://github.com/TheLastOfEugenes/TheLastOfEugenes.github.io">
+                        <div class="card-outer-grey">
+                            <div class="card-inner">
+                                <h3>TheLastOfEugenes<br>.github.io</h3>
+                                <p>What ever could that be?</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <script>
+                    function moveCarousel(forward) {
+                    const track = document.querySelector('.carousel-track');
+                    const card = document.querySelector('.project-card');
+                    const cardWidth = card.offsetWidth + 20; // Include gap
+                    track.scrollLeft += forward ? cardWidth : -cardWidth;
+                    }
+                </script>
+
+            </div>
+            <button class="arrow next" onclick="moveCarousel(true)">›</button>
+        </div>
 
         <a href="#cv">
             <!--<img src="resources/greyarrowhead.png" class="arrowshadow3">-->
@@ -159,6 +266,12 @@
 
     <!--cv en ligne-->
     <div class="onlineCV" id="cv">
+
+        <!--<a href="#projects">
+            <!--<img src="resources/greyarrowhead.png" class="toparrowshadow3">
+            <img src="resources/greyarrowhead.png" class="toparrow3">
+        </a>-->
+
         <h1>CV en ligne</h1>
         <table>
             <tr>

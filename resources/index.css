@@ -5,9 +5,15 @@
     src: url("../resources/AliceInWonderland-z051.ttf");
 }
 
+@font-face {
+    font-family: "Funnel";
+    src: url("../resources/FunnelDisplay-Bold.ttf");
+}
+
 h1 {
     border-bottom: none;
 }
+
 
 .tooltip:hover .tooltiptext {
     visibility: visible;
@@ -57,7 +63,7 @@ body {
     position: absolute;
     height: 7vh;
     width: 5vw;
-    bottom: 10vh;
+    bottom: 5vh;
     right: 47.5vw;
 }
 
@@ -65,7 +71,7 @@ body {
     position: absolute;
     height: 8vh;
     width: 6vw;
-    bottom: 9.5vh;
+    bottom: 4.5vh;
     right: 47vw;
     filter: brightness(0%);
 }
@@ -74,34 +80,43 @@ body {
     position: absolute;
     height: 7vh;
     width: 5vw;
-    bottom: -100vh;
+    bottom: -106vh;
     right: 47.5vw;
-}
-
-.arrowshadow2 {
-    position: absolute;
-    height: 8vh;
-    width: 6vw;
-    bottom: 9.5vh;
-    right: 47vw;
-    filter: brightness(0%);
 }
 
 .arrow3 {
     position: absolute;
     height: 7vh;
     width: 5vw;
-    bottom: -210vh;
+    bottom: -219vh;
     right: 47.5vw;
 }
 
-.arrowshadow3 {
+.toparrow1 {
     position: absolute;
-    height: 8vh;
-    width: 6vw;
-    bottom: 9.5vh;
-    right: 47vw;
-    filter: brightness(0%);
+    height: 5vh;
+    width: 4vw;
+    bottom: -15vh;
+    right: 48vw;
+    transform: scaleY(-1);
+}
+
+.toparrow2 {
+    position: absolute;
+    height: 5vh;
+    width: 4vw;
+    bottom: -125vh;
+    right: 48vw;
+    transform: scaleY(-1);
+}
+
+.toparrow3 {
+    position: absolute;
+    height: 5vh;
+    width: 4vw;
+    bottom: -235vh;
+    right: 48vw;
+    transform: scaleY(-1);
 }
 
 /* texts */
@@ -280,7 +295,7 @@ a.writeup-wrapper {
 div.frontpage {
     height: 108vh;
     width: 100vw;
-    background-color: rgba(238, 255, 0, 0.3);
+    /* background-color: rgba(238, 255, 0, 0.3); */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -294,12 +309,24 @@ div.frontpage p.glow-blue-box {
     font-family: "AliceInWonderland", sans-serif;
 }
 
+#circle-title {
+    position: absolute;
+    top: 27.5vh;
+    left: 32vw;
+}
+
+#circle-text {
+  position: absolute;
+  top: 30vh;
+  left: 40vw;
+}
+
 /* writeups page */
 
 div.writeups {
     height: 108vh;
     width: 100vw;
-    background-color: rgba(255, 0, 0, 0.3);
+    /* background-color: rgba(255, 0, 0, 0.3); */
 }
 
 div.writeups>* {
@@ -337,7 +364,175 @@ div.writeups table td.image img {
 div.projects {
     height: 108vh;
     width: 100vw;
-    background-color: rgba(0, 0, 255, 0.3);
+    /*background-color: rgba(0, 0, 255, 0.3);*/
+}
+
+div.projects>.section-title {
+    padding-top: 10vh;
+    text-align: center;
+    color: white;
+    font-family: "Funnel", sans-serif;
+    font-size: 80px;
+}
+
+.project-card {
+  flex: 0 0 300px;
+  height: 350px;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform 0.3s;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.project-card > a {
+  display: block !important;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+  z-index: 1;
+  text-decoration: none;
+
+  margin-top: 2vh;
+}
+
+
+.carousel-track::-webkit-scrollbar { display: none; }
+
+.project-card:hover { 
+  transform: scale(1.05);
+  z-index: 2; /* Still below arrows */
+}
+
+.carousel-wrapper {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 400px;
+  padding-top: 10vh;
+}
+
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  gap: 0px;
+  padding: 20px;
+  scrollbar-width: none; /* Hide scrollbar */
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  color: rgb(255, 255, 255);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  z-index: 9999;
+}
+
+.arrow:hover {
+  background: rgba(0,0,0,0.9);
+}
+
+.prev { left: 10px; }
+.next { right: 10px; }
+
+.card-outer-grey {
+  width: 90%; /* Fits outer frame */
+  height: 90%;
+  position: relative;
+  /* Colored ridge via shadows: sides/top thin, bottom thick */
+  /*box-shadow: 
+    0 4px 0 0 var(--ridge-color, #e0a000),
+    0 0 0 4px var(--ridge-color, #e0a000),
+    0 12px 0 0 var(--ridge-color, #e0a000),
+    0 8px 20px rgba(0,0,0,0.1);*/
+  border-radius: 12px;
+  z-index: 5;
+  background-color: #C1C0C2;
+}
+
+.card-outer-pink {
+  width: 90%; /* Fits outer frame */
+  height: 90%;
+  position: relative;
+  /* Colored ridge via shadows: sides/top thin, bottom thick */
+  /*box-shadow: 
+    0 4px 0 0 var(--ridge-color, #e0a000),
+    0 0 0 4px var(--ridge-color, #e0a000),
+    0 12px 0 0 var(--ridge-color, #e0a000),
+    0 8px 20px rgba(0,0,0,0.1);*/
+  border-radius: 12px;
+  z-index: 5;
+  background-color: #ECC5C6;
+}
+
+.card-outer-blue {
+  width: 90%; /* Fits outer frame */
+  height: 90%;
+  position: relative;
+  /* Colored ridge via shadows: sides/top thin, bottom thick */
+  /*box-shadow: 
+    0 4px 0 0 var(--ridge-color, #e0a000),
+    0 0 0 4px var(--ridge-color, #e0a000),
+    0 12px 0 0 var(--ridge-color, #e0a000),
+    0 8px 20px rgba(0,0,0,0.1);*/
+  border-radius: 12px;
+  z-index: 5;
+  background-color: #8A9DB1;
+}
+
+.card-outer-brown {
+  width: 90%; /* Fits outer frame */
+  height: 90%;
+  position: relative;
+  /* Colored ridge via shadows: sides/top thin, bottom thick */
+  /*box-shadow: 
+    0 4px 0 0 var(--ridge-color, #e0a000),
+    0 0 0 4px var(--ridge-color, #e0a000),
+    0 12px 0 0 var(--ridge-color, #e0a000),
+    0 8px 20px rgba(0,0,0,0.1);*/
+  border-radius: 12px;
+  z-index: 5;
+  background-color: #837D68;
+}
+
+.card-inner {
+  width: 96%;
+  height: 90%;
+  background-color: #f8f9fa; /* Light bg */
+  border-radius: 8px; /* Smaller radius */
+  padding: 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: absolute;
+  top: 2%; /* Lift inner */
+  left: 2%;
+  right: 2%;
+  bottom: 5%; /* Larger bottom gap for thick ridge */
+  /*box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Inner depth */
+  z-index: 10;
+}
+
+.card-link {
+  align-self: flex-start;
+  margin-top: auto;
 }
 
 /* online cv */
