@@ -38,6 +38,9 @@ body {
     background-image: url("../images/background_4_pages_without_logo_v2.png");
     margin: 0;
     padding: 0;
+    background-size: cover;           /* fill screen, keep aspect ratio */
+    background-position: center;      /* keep center visible */
+    background-repeat: no-repeat;     /* no tiling */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -217,60 +220,113 @@ h1.dictionary {
     font-size: 4vh;
 }
 
+/* cards Backgrounds */
+.light-grey-bg {
+  background-color: #C1C0C2;
+}
+
+.light-pink-bg {
+  background-color: #ECC5C6;
+}
+
+.light-blue-bg {
+  background-color: #8A9DB1;
+}
+
+.light-brown-bg {
+  background-color: #837D68;
+}
+
+/* Tags backgrounds */
+
+.bright-orange-bg {
+    background-color: rgba(255, 166, 0, 0.2);
+}
+
+.bright-orange-txt {
+    color: orange;
+}
+
+.bright-blue-bg {
+    background-color: rgba(4, 105, 221, 0.2);
+}
+
+.bright-blue-txt {
+    color: rgba(4, 105, 221);
+}
+
+.bright-pink-bg {
+    background-color: rgb(222, 116, 255, 0.3);
+}
+
+.bright-pink-txt {
+    color: rgb(222, 116, 255);
+}
+
+.bright-green-bg {
+    background-color: rgb(21, 155, 16, 0.2);
+}
+
+.bright-green-txt {
+    color: rgb(21, 155, 16);
+}
+
+.bright-red-bg {
+    background-color: rgb(212, 32, 32, 0.2);
+}
+
+.bright-red-txt {
+    color: rgb(212, 32, 32);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* writeups cards styling */
 
-.writeup-card-htb {
+.writeup-card {
     white-space: nowrap;
-    background-color: rgba(28, 6, 79, 0.3);
+    background-color: rgba(28, 6, 79, 0.5);
     margin: 2vh auto;
     font-size: 3vh;
-    padding: 1vw;
+    padding: .5vw;
     border-radius: 1vw;
     width: 90%;
     border: .2vh solid black;
-    box-shadow: 
-        -.4vh -.4vh .8vh #9aff00
 }
 
-.writeup-card-ctf {
-    white-space: nowrap;
-    background-color: rgba(28, 6, 79, 0.3);
-    margin: 2vh auto;
-    font-size: 3vh;
-    padding: 1vw;
-    border-radius: 1vw;
-    width: 90%;
-    border: .2vh solid black;
+.shadow-nw {
     box-shadow: 
-        .4vh -.4vh .8vh #ff4da6
+        -.4vh -.4vh .8vh #9aff00;
 }
 
-.writeup-card-htb-summary {
-    white-space: nowrap;
-    background-color: rgba(28, 6, 79, 0.3);
-    margin: 2vh auto;
+.shadow-ne {
+    box-shadow: 
+        .4vh -.4vh .8vh #ff4da6;
+}
+
+.shadow-sw {
+    box-shadow: 
+        -.4vh .4vh .8vh #f17c0e;
     margin-top: 4vh;
-    font-size: 3vh;
-    padding: 1.5vw 1vw;
-    border-radius: 1vw;
-    width: 90%;
-    border: .2vh solid black;
-    box-shadow: 
-        -.4vh .4vh .8vh #f17c0e
 }
 
-.writeup-card-ctf-summary {
-    white-space: nowrap;
-    background-color: rgba(28, 6, 79, 0.3);
-    margin: 2vh auto;
-    margin-top: 4vh;
-    font-size: 3vh;
-    padding: 1.5vw 1vw;
-    border-radius: 1vw;
-    width: 90%;
-    border: .2vh solid black;
+.shadow-se {
     box-shadow: 
-        .4vh .4vh .8vh #f17c0e
+        .4vh .4vh .8vh #f17c0e;
+    margin-top: 4vh;
 }
 
 a.writeup-wrapper {
@@ -281,7 +337,6 @@ a.writeup-wrapper {
 .writeup-wrapper small {
     font-size: 1.2vh;
 }
-
 
 
 
@@ -402,6 +457,12 @@ div.projects>.section-title {
   margin-top: 2vh;
 }
 
+span.tag {
+    display: inline;
+    padding: .5vh;
+    border-radius: 1vh;
+}
+
 
 .carousel-track::-webkit-scrollbar { display: none; }
 
@@ -450,40 +511,12 @@ div.projects>.section-title {
 .prev { left: 1vh; }
 .next { right: 1vh; }
 
-.card-outer-grey {
+.card-outer {
   width: 90%;
   height: 90%;
   position: relative;
   border-radius: 1.2vh;
   z-index: 5;
-  background-color: #C1C0C2;
-}
-
-.card-outer-pink {
-  width: 90%;
-  height: 90%;
-  position: relative;
-  border-radius: 1.2vh;
-  z-index: 5;
-  background-color: #ECC5C6;
-}
-
-.card-outer-blue {
-  width: 90%;
-  height: 90%;
-  position: relative;
-  border-radius: 1.2vh;
-  z-index: 5;
-  background-color: #8A9DB1;
-}
-
-.card-outer-brown {
-  width: 90%;
-  height: 90%;
-  position: relative;
-  border-radius: 1.2vh;
-  z-index: 5;
-  background-color: #837D68;
 }
 
 .card-inner {
@@ -524,6 +557,11 @@ div.onlineCV {
 div.onlineCV a:not(#emaillink){
     text-decoration: none;
     color: black;
+}
+
+span#emaillink {
+    color: blue;
+    text-decoration: underline;
 }
 
 .grey-box {

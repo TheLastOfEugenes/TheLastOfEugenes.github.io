@@ -2,6 +2,8 @@
 # front matter tells Jekyll to process Liquid
 ---
 
+<!DOCTYPE html>
+
 <html class="hide-scrollbar">
 
 <!--head-->
@@ -64,10 +66,6 @@
             A written account -- in particular a great one -- giving a solution to a problem, often regarded as correct,
             rightfully so. <br>
             synonyms: shareflag, solution</p>
-        <div class="tooltip">
-            <p class="tooltiptext">p.s. Most of those are wrote in french, the english version is coming (somewhat) soon
-            </p>
-        </div>
 
         <table>
             <tr>
@@ -85,7 +83,7 @@
 
                     {% for post in htb_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card-htb">
+                        <p class="writeup-card shadow-nw">
                             {{ post.title }}<br>
                             <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
@@ -95,7 +93,7 @@
 
                     <!--Ici le poste pour recenser tous les autres-->
                     <a href="htb-index.html" class="writeup-wrapper">
-                        <p class="writeup-card-htb-summary">
+                        <p class="writeup-card shadow-sw">
                             See all HTB writeups.
                         </p>
                     </a>
@@ -118,7 +116,7 @@
 
                     {% for post in ctf_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card-ctf">
+                        <p class="writeup-card shadow-ne">
                             {{ post.title }} <br>
                             <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
@@ -128,7 +126,7 @@
 
                     <!--Ici le poste pour recenser tous les autres-->
                     <a href="htb-index.html" class="writeup-wrapper">
-                        <p class="writeup-card-ctf-summary">
+                        <p class="writeup-card shadow-se">
                             See all CTF writeups.
                         </p>
                     </a>
@@ -158,12 +156,23 @@
             <button class="arrow prev" onclick="moveCarousel(false)">‹</button>
             <div class="carousel-track">
                 
+                <!-- Tags colors
+                 Python -> green
+                 Game -> orange
+                 Cysec tools -> blue
+                 C -> pink 
+                 Web -> red -->
+
                 <!--Project Shootpython-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/Shooterpython">
-                        <div class="card-outer-grey">
+                        <div class="card-outer light-grey-bg">
                             <div class="card-inner">
                                 <h3>PyShooter</h3>
+                                <div class="tag">
+                                    <span class="tag bright-green-txt bright-green-bg">#Python</span>
+                                    <span class="tag bright-orange-bg bright-orange-txt">#Game</span>
+                                </div>
                                 <p>Simple shooter game in python.</p>
                             </div>
                         </div>
@@ -173,10 +182,14 @@
                 <!--Project Fuzzer-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/fuzzer">
-                        <div class="card-outer-pink">
+                        <div class="card-outer light-pink-bg">
                             <div class="card-inner">
                                 <h3>Fuzzer</h3>
-                                <p>Web Fuzzer adaptable to modules.<br>Still in development</p>
+                                <div class="tag">
+                                    <span class="tag bright-pink-bg bright-pink-txt">#C</span>
+                                    <span class="tag bright-blue-bg bright-blue-txt">#Cysec tools</span>
+                                </div>
+                                <p>Web Fuzzer adaptable to modules.<br>Still in development.</p>
                             </div>
                         </div>
                     </a>
@@ -185,10 +198,13 @@
                 <!--Project Fuzzer-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/PentestCheatSheet">
-                        <div class="card-outer-brown">
+                        <div class="card-outer light-brown-bg">
                             <div class="card-inner">
                                 <h3>Pentesting Cheatsheet</h3>
-                                <p>Cheat Sheet for pentestoing different environments.</p>
+                                <div class="tag">
+                                    <span class="tag bright-blue-bg bright-blue-txt">#Cysec tools</span>
+                                </div>
+                                <p>Cheat Sheet for pentesting different environments.</p>
                             </div>
                         </div>
                     </a>
@@ -197,10 +213,13 @@
                 <!--Project Fuzzer-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/seemsimi">
-                        <div class="card-outer-blue">
+                        <div class="card-outer light-blue-bg">
                             <div class="card-inner">
                                 <h3>Seem-simi</h3>
-                                <p>A simplistic version of the infamous Simsimi. Still in development.</p>
+                                <div class="tag">
+                                    <span class="tag bright-green-txt bright-green-bg">#Python</span>
+                                </div>
+                                <p>A simplistic version of the infamous Simsimi.<br>Still in development.</p>
                             </div>
                         </div>
                     </a>
@@ -209,10 +228,14 @@
                 <!--Project Dofus-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/dofus_like">
-                        <div class="card-outer-pink">
+                        <div class="card-outer light-pink-bg">
                             <div class="card-inner">
                                 <h3>Dofus-like</h3>
-                                <p>A simplistic group project version of the famous Dofus game.</p>
+                                <div class="tag">
+                                    <span class="tag bright-pink-bg bright-pink-txt">#C</span>
+                                    <span class="tag bright-orange-bg bright-orange-txt">#Game</span>
+                                </div>
+                                <p>A simplistic group project version of the famous Dofus game, coded in C.</p>
                             </div>
                         </div>
                     </a>
@@ -221,9 +244,12 @@
                 <!--Project Website-->
                 <div class="project-card">
                     <a href="https://github.com/TheLastOfEugenes/TheLastOfEugenes.github.io">
-                        <div class="card-outer-grey">
+                        <div class="card-outer light-grey-bg">
                             <div class="card-inner">
                                 <h3>TheLastOfEugenes<br>.github.io</h3>
+                                <div class="tag">
+                                    <span class="tag bright-red-bg bright-red-txt">#Web</span>
+                                </div>
                                 <p>What ever could that be?</p>
                             </div>
                         </div>
@@ -258,15 +284,15 @@
 
                 <!--left column-->
                 <td>
-                    <a href="resources/cv.pdf" download>
+                    <a href="mailto:contact@eugenetl.com">
                         <div class="beige-box">
                             <h1>My online CV</h1>
                             <p>Student in IT specializing in offensive Cybersecurity, pentest.</p>
-                            <p>Contact: <a href="mailto:contact@eugenetl.com" id="emaillink">contact@eugenetl.com</a></p>
+                            <p>Contact: <span id="emaillink">contact@eugenetl.com</span></p>
                         </div>
                     </a>
 
-                    <a href="resources/cv.pdf" download>
+                    <a href="resources/cv.pdf" download="cv.pdf">
                         <div class="grey-box">
                             <h1>Skills</h1>
                             <ul>
@@ -313,7 +339,7 @@
 
                 <!--right column-->
                 <td>
-                    <a href="resources/cv.pdf" download>
+                    <a href="resources/cv.pdf" download="cv.pdf">
                         <div class="black-box">
                             <h1>Rankings</h1>
                             <ul>
@@ -325,7 +351,7 @@
                         </div>
                     </a>
                     
-                    <a href="resources/cv.pdf" download>
+                    <a href="resources/cv.pdf" download="cv.pdf">
                         <div class="black-box">
                             <h1>Professional experience</h1>
                             <ul>
@@ -340,7 +366,7 @@
                         </div>
                     </a>
 
-                    <a href="resources/cv.pdf" download>
+                    <a href="resources/cv.pdf" download="cv.pdf">
                         <div class="black-box">
                             <h1>Academics</h1>
                             <ul>
