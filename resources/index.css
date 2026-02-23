@@ -365,14 +365,14 @@ div.frontpage p.glow-blue-box {
 
 #circle-title {
     position: absolute;
-    top: 26vh;
+    top: 15vh;
     left: 30vw;
 }
 
 #circle-text {
   position: absolute;
   top: 30vh;
-  left: 40vw;
+  left: 37.5vw;
 }
 
 /* writeups page */
