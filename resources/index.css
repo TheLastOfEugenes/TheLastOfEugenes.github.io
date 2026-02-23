@@ -368,6 +368,11 @@ a.writeup-wrapper {
 
 
 
+
+
+
+
+
 /* frontpage */
 
 div.frontpage {
@@ -397,6 +402,12 @@ div.frontpage p.glow-blue-box {
   position: absolute;
   top: 30vh;
   left: 37.5vw;
+}
+
+#indication {
+    margin-top: 60vh;
+    color: white;
+    text-decoration: none;
 }
 
 /* writeups page */
