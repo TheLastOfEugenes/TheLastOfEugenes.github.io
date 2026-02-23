@@ -63,7 +63,7 @@
         <h1 class="dictionary">Write-up</h1>
         <p class="dictionary">/ˈrʌɪtʌp/</p>
         <p class="dictionary text">noun: writeup <br>
-            A written account -- in particular a great one -- giving a solution to a problem, often regarded as correct,
+            A written account -- an especially great one -- giving a solution to a problem, often regarded as correct,
             rightfully so. <br>
             synonyms: shareflag, solution</p>
 
@@ -83,7 +83,7 @@
 
                     {% for post in htb_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card shadow-nw">
+                        <p class="writeup-card">
                             {{ post.title }}<br>
                             <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
