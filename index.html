@@ -83,7 +83,7 @@
 
                     {% for post in htb_writeups limit: 3%}
                     <a href="{{ post.url | relative_url }}" class="writeup-wrapper">
-                        <p class="writeup-card">
+                        <p class="writeup-card shadow-nw">
                             {{ post.title }}<br>
                             <small>| {{ post.date | date: "%d %b %Y" }}</small>
                         </p>
