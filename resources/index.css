@@ -137,6 +137,30 @@ body {
         0 0 3vh #00ccff;
 }
 
+.neon-cyan {
+    box-shadow: 
+        0 0 4px #00ffff,    /* Inner glow */
+        0 0 8px #00ffff,   /* Middle glow */
+        0 0 12px #00ffff,   /* Outer glow */
+        0 0 16px #00ffff1a; /* Faint halo (low opacity) */
+}
+
+.neon-blue {
+    box-shadow: 
+        0 0 4px #0099ff,    /* Inner glow */
+        0 0 8px #0099ff,   /* Middle glow */
+        0 0 12px #0099ff,   /* Outer glow */
+        0 0 16px #00ffff1a; /* Faint halo (low opacity) */
+}
+
+.neon-brown {
+    box-shadow: 
+        0 0 4px #ff9100,    /* Inner glow */
+        0 0 8px #ff9100,   /* Middle glow */
+        0 0 12px #ff9100,   /* Outer glow */
+        0 0 16px #00ffff1a; /* Faint halo (low opacity) */
+}
+
 .green-text {
     font-size: 5vh;
     color: #9aff00;
@@ -567,11 +591,8 @@ span#emaillink {
 .grey-box {
   width: 35vw;
   max-width: 60vw;
-  background: #3d3838;
+  background: rgba(128, 128, 128, 0.3);
   border-radius: 2vw;
-  box-shadow: 
-    2vw 3vh 12vw 1vw rgba(0,0,0,0.2),
-    0 2vh 6vh 0 rgba(0,0,0,0.08);
 
   color: white;
   font-size: 1vw;
@@ -586,12 +607,9 @@ span#emaillink {
 .beige-box {
   width: 35vw;
   max-width: 60vw;
-  background: #dfc57d;
+  background: rgba(255, 206, 73, 0.2);
   min-height: 15vh;
   border-radius: 2vw;
-  box-shadow: 
-    2vw 3vh 12vw 1vw rgba(0,0,0,0.2),
-    0 2vh 6vh 0 rgba(0,0,0,0.08);
 
   color: white;
   font-size: 1vw;
@@ -604,11 +622,8 @@ span#emaillink {
 .black-box {
   width: 40vw;
   max-width: 60vw;
-  background: #292727;
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 2vw;
-  box-shadow: 
-    2vw 3vh 12vw 1vw rgba(0,0,0,0.2),
-    0 2vh 6vh 0 rgba(0,0,0,0.08);
 
   color: white;
   font-size: 1vw;
@@ -633,3 +648,4 @@ span#emaillink {
     margin-top: 0;
     margin-bottom: 0;
 }
+
