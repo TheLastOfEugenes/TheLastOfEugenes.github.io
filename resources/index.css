@@ -38,7 +38,7 @@ body {
     background-image: url("../images/background_4_pages_without_logo_v2.png");
     margin: 0;
     padding: 0;
-    background-size: cover;           /* fill screen, keep aspect ratio */
+    background-size: 100% 100%;           /* fill screen, keep aspect ratio */
     background-position: center;      /* keep center visible */
     background-repeat: no-repeat;     /* no tiling */
 }
