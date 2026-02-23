@@ -660,3 +660,22 @@ span#emaillink {
     margin-bottom: 0;
 }
 
+
+#arrow-image {
+    position: absolute;
+    top: 338vh;
+    left: 50vw;
+    width: 6vw;
+    height: 6vw;
+    filter: invert(0.8) brightness(1.1);
+    transform: rotate(20deg);
+}
+
+#arrow-text {
+    margin-top: -2vh;
+    margin-left: 5vw;
+    color: white;
+    transform: rotate(10deg);
+    font-family: "Brush Script MT", "Brush Script", cursive;
+    font-size: 3vh;
+}
