@@ -6,8 +6,8 @@ tasks:
   - 
 parent files:
   - 
-title: Jinja challenge
-description: Jinja challenge in 0xFUN ctf
+title: 'SSTU: "Jinja"'
+description: "0xFUN: Jinja challenge"
 ---
 
 # Recherches

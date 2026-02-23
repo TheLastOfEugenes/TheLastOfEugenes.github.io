@@ -6,8 +6,8 @@ tasks:
   - 
 parent files:
   - 
-title: sqli Challenge "Tony Toolkit"
-description: Tony toolkit challenge
+title: 'SQLi: "Tony Toolkit"'
+description: "0xFUN: Tony toolkit"
 ---
 
 # Recherches
