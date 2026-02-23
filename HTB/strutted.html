@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Strutted | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Strutted" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Did I strutted?" />
+<meta property="og:description" content="Did I strutted?" />
+<link rel="canonical" href="/HTB/strutted.html" />
+<meta property="og:url" content="/HTB/strutted.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-11-12T20:12:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Strutted" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-11-12T20:12:00+01:00","datePublished":"2025-11-12T20:12:00+01:00","description":"Did I strutted?","headline":"Strutted","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/strutted.html"},"url":"/HTB/strutted.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Strutted</h1>
+      <h2 class="project-tagline">Did I strutted?</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="q1">Q1</h1>
+
+<p>On fait un scan des ports et on obtient la réponse à la première question, il n’y a que 2 ports ouverts en tcp.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112201508.png"></span></p>
+
+<h1 id="q2">Q2</h1>
+
+<p>On doit maintenant accéder au site web. Une fois le zip téléchargé on voit que l’application qui tourne est tomcat.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112204456.png"></span></p>
+
+<h1 id="q3">Q3</h1>
+
+<p>On doit maintenant chercher le nom du fichier qui contient le nom des dépendances de l’application.</p>
+
+<p>Il se trouve qu’il existe un fichier <code class="language-plaintext highlighter-rouge">pom.xml</code> qui contient justement ce genre d’infos.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112204919.png"></span></p>
+
+<h1 id="q4">Q4</h1>
+
+<p>En listant les dépendances on trouve justement apache struts qui est une dépendance de framework MVC.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112205911.png"></span></p>
+
+<h1 id="q5">Q5</h1>
+
+<p>On doit maintenant découvrir la version de la dépendance, il se trouve que cette dépendance est importée en utilisant le template ${struts2.versions}. Il nous faut donc énumérer les fichiers. On continue à énumérer les fichier et on voit le fichier jar de configuration de struts et on y trouve la version.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ls strutted/target/strutted-1.0.0/WEB-INF/lib
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112210119.png"></span></p>
+
+<h1 id="q6">Q6</h1>
+
+<p>Pour cette question on ne trouve aucun exploit pour cette librairie sur exploitDB, en revanche la recherche “struts 6.3.0.1 exploit” nous donne quelques résultats, on trouve notamment une cve de file upload: CVE-2024-53677.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/strutted%20images/Pasted%20image%2020251112212659.png"></span></p>
+
+<h1 id="q7">Q7</h1>
+
+<p>On trouve un exploit en ligne qui nous permet d’exécuter une commande (il se trouve que l’exploit a été développé pour cette box spécifiquement).</p>
+
+<p>https://github.com/Cythonic1/CVE-2024-53677-POC.git</p>
+
+<p>On trouve aussi un guide de l’exploitation (bon il ne faut pas aller trop loin, c’est aussi un guide pour )
+https://medium.com/@qinncade/strutted-htb-walkthrough-31bd09097eb0</p>
+
+<p>On prend le webshell que l’on voit et on l’ajoute à la photo en laissant quand même un début de données. Au début de nos données on modifie le “upload” en “Upload” et à la fin on ajoute un content-separator pour ajouter un header.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>------geckoformboundaryec386a111f5fe25c16553aacde672d5
+Content-Disposition: form-data; name="Upload"; filename="cat.png"
+Content-Type: image/png
+
+PNG
+
+   
+IHDR  h      °
+&gt;</code></pre></div></div>
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

