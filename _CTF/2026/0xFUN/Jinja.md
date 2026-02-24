@@ -6,7 +6,7 @@ tasks:
   - 
 parent files:
   - 
-title: 'SSTU: "Jinja"'
+title: 'SSTI: "Jinja"'
 description: "0xFUN: Jinja challenge"
 ---
 
