@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>SQLi: “Tiny SQL” | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="SQLi: “Tiny SQL”" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Complicated sqli challenge using the alternative database manager: tinysql" />
+<meta property="og:description" content="Complicated sqli challenge using the alternative database manager: tinysql" />
+<link rel="canonical" href="/CTF/2026/BKCTF/Tiny%20SQL.html" />
+<meta property="og:url" content="/CTF/2026/BKCTF/Tiny%20SQL.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-02-21T17:52:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="SQLi: “Tiny SQL”" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-02-21T17:52:00+01:00","datePublished":"2026-02-21T17:52:00+01:00","description":"Complicated sqli challenge using the alternative database manager: tinysql","headline":"SQLi: “Tiny SQL”","mainEntityOfPage":{"@type":"WebPage","@id":"/CTF/2026/BKCTF/Tiny%20SQL.html"},"url":"/CTF/2026/BKCTF/Tiny%20SQL.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">SQLi: "Tiny SQL"</h1>
+      <h2 class="project-tagline">Complicated sqli challenge using the alternative database manager: tinysql</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="recherches">Recherches</h1>
+
+<p>On nous donne le code de ce que l’utilisateur a codé pour remplacer SQL. On voit dans ce code une fonction login:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def login():
+    if request.method == 'GET': return render_template('login.html')
+
+    # user lookup syntax `S:[user]:[pass]#comment`
+    # results = [id, user, pass]
+    code, results = conn.query('S:' + request.form['user'] +  ':' + request.form['pass'])
+    if code == 'e':
+        return render_template('500.html'), 500
+    if len(results) != 3: return render_template('login.html'), 403
+    session['username'] = results[1]
+    print (session['username'])
+    return redirect('/')
+</code></pre></div></div>
+
+<p>Et ensuite on regarde</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@app.route('/forum/post/&lt;int:post_id&gt;', methods=['GET'])
+def forum(post_id):
+    if not 'username' in session or session['username'] is None:
+        return redirect('/login')
+    post_id = post_id % 4
+    # id lookup syntax `S:[id]#comment`
+    code, author = conn.query('S:' + str(post_id))
+    match post_id:
+        case 0:
+            title = 'how 2 beat da game?'
+            description = 'i dont get how 2 beat the game. its so hard'
+        case 1:
+            title = 'the game makes computer mean??'
+            description = 'every time i run the game it says "all your base are belong to us. please send us $40 in cash (bitcoin hasnt been invented yet)" \n\nbtw i downloaded it from the pirate bay if thats relevant.'
+        case 2:
+            title = 'an analytical discussion on the DOOM franchise'
+            description = 'in this essay i will explain the way the playstyle of doom 2 while on the surface similar to the original fails to convey the antiwar story hidden in the subtext.'
+        case 3:
+            title = 'flag'
+            description = FLAG
+        case _:
+            title = "this should not be seen"
+            description = "this should relaly not be sean"
+    return render_template('post.html', title=title, desc=description, author=author[1])
+</code></pre></div></div>
+
+<p>La clé de tout ça repose sur <code class="language-plaintext highlighter-rouge">conn.query</code>, une fonction qui repose sur un appel au backend. Tant que l’on a pas le bon résultat on ne pourra pas accéder au post 3. On sait que la bdd utilisée est tinySQL.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install git+https://github.com/withmartian/TinySQL@main
+</code></pre></div></div>
+
+<p>On tente différentes entrées</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$
+{
+}
+\
+"
+`
+;
+%00
+</code></pre></div></div>
+
+<h1 id="documentation">Documentation</h1>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
