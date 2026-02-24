@@ -7,7 +7,9 @@ tasks:
   - format
 parent file:
   - 
-category: writeups
+category:
+  - writeups
+  - htb
 difficulty: easy
 os: linux
 title: TwoMillion

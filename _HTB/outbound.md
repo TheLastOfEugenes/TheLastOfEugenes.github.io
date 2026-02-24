@@ -6,7 +6,9 @@ date: 2025-11-06T17:47
 tasks:
 parent file:
   - 
-category: writeups
+category:
+  - writeups
+  - htb
 difficulty: easy
 os: linux
 title: Outbound

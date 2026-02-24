@@ -7,7 +7,9 @@ tags:
 date: 2025-09-10T15:19
 tasks:
   - mise en page
-category: writeups
+category:
+  - writeups
+  - htb
 difficulty: easy
 os: linux
 title: Artifical

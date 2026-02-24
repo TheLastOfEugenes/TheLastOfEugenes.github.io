@@ -8,7 +8,9 @@ tasks:
   - 
 parent files:
   - 
-category: writeups
+category:
+  - writeups
+  - ctf
 ---
 
 # Presentation
