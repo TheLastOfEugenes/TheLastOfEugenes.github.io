@@ -8,6 +8,8 @@ parent files:
   - 
 title: 'SQLi: "Tony Toolkit"'
 description: "0xFUN: Tony toolkit"
+category:
+  - challenges
 ---
 
 # Recherches

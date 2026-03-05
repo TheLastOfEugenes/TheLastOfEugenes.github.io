@@ -32,8 +32,7 @@ gem "wdm", "~> 0.1", :platforms => [:mingw, :x64_mingw, :mswin]
 # do not have a Java counterpart.
 gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
-# thème cayman
-gem "jekyll-remote-theme"
-
 # liens markdown obsidian
 gem 'jekyll-wikirefs'
+
+gem "jekyll-remote-theme", "~> 0.4.3"

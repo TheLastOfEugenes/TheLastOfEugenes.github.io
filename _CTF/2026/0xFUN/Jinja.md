@@ -8,6 +8,8 @@ parent files:
   - 
 title: 'SSTI: "Jinja"'
 description: "0xFUN: Jinja challenge"
+category:
+  - challenges
 ---
 
 # Recherches
