@@ -14,6 +14,8 @@ difficulty: easy
 os: linux
 title: TwoMillion
 description: There are not so many writeups, are there?
+season: "8"
+seasonal: no
 ---
 
 # Foothold

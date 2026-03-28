@@ -14,6 +14,8 @@ difficulty: easy
 os: linux
 title: Artifical
 description: This is an artificial reconsitution of a Writeup
+season: "8"
+seasonal: yes
 ---
 
 # Enumeration

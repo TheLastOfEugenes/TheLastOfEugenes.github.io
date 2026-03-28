@@ -13,6 +13,8 @@ difficulty: easy
 os: linux
 title: Outbound
 description: Any writeup outbound?
+season: "8"
+seasonal: yes
 ---
 
 # Enumeration

@@ -11,6 +11,8 @@ difficulty: easy
 os: linux
 title: Editor Writeup
 Description: This is a writeup for the HTB Box "Editor"
+season: "8"
+seasonal: yes
 ---
 
 # Enumeration
