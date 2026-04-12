@@ -33,7 +33,7 @@ seasonal: no
 - Le compte `admin` peut être accédé avec le mdp de tobias
 - [Une CVE](https://github.com/ajdumanhug/CVE-2023-46818) donne root shell.
 ## Trouver les solutions
-- Puisqu'il faut donner à César ce qui revient à Ognon (et un peu à loutre aussi), je tiens à remercier Ognon (et un peu loutre aussi) pour son aide à travers cette box et sa patience pour m'aider à débugger mes petits soucis de vpn (j'étais aveugle).
+- Puisqu'il faut donner à César ce qui revient à Ognon (et un peu à loutre aussi), je tiens à remercier Ognon (et un peu loutre aussi) pour son aide à travers cette box et sa patience pour m'aider à débugger mes petits soucis de vpn (j'avais des soucis de vue mais grâce à mes nombreuses bêtises j'ai appris et ça a forgé la personne que je suis aujourd'hui, et c'est en forgeant qu'on devient forgeron, etc).
 
 
 
