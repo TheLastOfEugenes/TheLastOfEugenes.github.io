@@ -1,0 +1,1 @@
+![[The rest/Bad Precedents/assets/HTB/Pasted image 20260503173239.png]]
