@@ -186,6 +186,6 @@ Et ça fonctionne, on a notre root shell!
 
 ![](Pasted%20image%2020260503171130.png)
 
-![](Pasted%20image%2020260503171135.png)
+![](Pasted%20image%2020260503171648.png)
 
 
